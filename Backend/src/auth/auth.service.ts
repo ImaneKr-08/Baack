@@ -1,6 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { LoginDto } from './dto/login.dto';
 import * as bcrypt from 'bcrypt';
 
@@ -9,6 +10,7 @@ export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
+    private prisma: PrismaService,
   ) {}
 
   async login(loginDto: LoginDto) {
@@ -33,6 +35,47 @@ export class AuthService {
       user.email,
       user.role,
     );
+  }
+
+  async studentLogin(loginDto: { identifier: string; password?: string }) {
+    const student = await this.prisma.student.findFirst({
+      where: {
+        OR: [
+          { email: loginDto.identifier },
+          { studentCode: loginDto.identifier },
+        ],
+      },
+    });
+
+    if (!student) {
+      throw new UnauthorizedException('Invalid student code, email, or password');
+    }
+
+    if (loginDto.password) {
+      const isMatch = await bcrypt.compare(loginDto.password, student.password);
+      if (!isMatch) {
+        throw new UnauthorizedException('Invalid student code, email, or password');
+      }
+    }
+
+    const tokens = this.generateTokens(
+      student.id,
+      `${student.firstName} ${student.lastName}`.trim(),
+      student.email,
+      'STUDENT',
+    );
+
+    return {
+      access_token: tokens.accessToken,
+      refresh_token: tokens.refreshToken,
+      student: {
+        id: student.id,
+        studentCode: student.studentCode,
+        email: student.email,
+        firstName: student.firstName,
+        lastName: student.lastName,
+      },
+    };
   }
 
   async refreshTokens(userId: number) {

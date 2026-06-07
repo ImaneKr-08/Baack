@@ -16,10 +16,10 @@ export class CreateStudentDto {
   @IsEmail()
   email!: string;
 
-  @ApiProperty()
-  @IsNotEmpty()
+  @ApiPropertyOptional()
+  @IsOptional()
   @IsString()
-  department!: string;
+  department?: string;
 
   @ApiProperty()
   @IsNotEmpty()

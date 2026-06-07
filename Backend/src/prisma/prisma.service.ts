@@ -26,19 +26,22 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
       }
     }
 
-    const sslConfig = (dbUrl?.includes('ssl-mode=REQUIRED') || dbUrl?.includes('ssl=true'))
-      ? { rejectUnauthorized: false }
-      : undefined;
+    const requiresSsl = dbUrl?.includes('ssl-mode=REQUIRED') || dbUrl?.includes('ssl=true');
 
-    const config = {
-      host,
+const config = {      host,
       port,
       user,
       password,
       database,
-      connectionLimit: 10,
-      ssl: sslConfig,
+      connectionLimit: 5,
+      acquireTimeout: 30000,
+      connectTimeout: 30000,
+      idleTimeout: 60000,
+      keepAliveDelay: 10000,
+      ssl: requiresSsl ? { rejectUnauthorized: false } : undefined,
     };
+
+    console.log(`[PrismaService] Connecting to ${host}:${port}/${database} (SSL: ${!!requiresSsl})`);
 
     return new PrismaMariaDb(config);
   }
@@ -50,7 +53,13 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
   }
 
   async onModuleInit() {
-    await this.$connect();
+    try {
+      await this.$connect();
+      console.log('[PrismaService] Database connected successfully');
+    } catch (err) {
+      console.error('[PrismaService] Failed to connect to database:', err);
+      throw err;
+    }
   }
 
   async onModuleDestroy() {
