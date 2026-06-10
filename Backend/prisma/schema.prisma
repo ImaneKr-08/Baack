@@ -19,28 +19,28 @@ model User {
 }
 
 model Student {
-  id               Int                @id @default(autoincrement())
-  firstName        String
-  lastName         String
-  email            String             @unique
-  department       String
-  studentCode      String             @unique
-  braceletId       String?            @unique
-  heartRate        Int?
-  stressScore      Float?
-  stressLevel      StressLevel?
-  connected        Boolean            @default(false)
-  lastUpdate       DateTime?
-  createdAt        DateTime           @default(now())
-  updatedAt        DateTime           @updatedAt
-  password         String
-  seatNumber       String?
-  ExamSession      ExamSession[]
-  examStudents     ExamStudent[]
-  JournalEntry     JournalEntry[]
-  telemetryHistory TelemetryHistory[]
-  TherapistSession TherapistSession[]
-  UpcomingExam     UpcomingExam[]
+  id                Int                @id @default(autoincrement())
+  firstName         String
+  lastName          String
+  email             String             @unique
+  department        String
+  studentCode       String             @unique
+  braceletId        String?            @unique
+  heartRate         Int?
+  stressScore       Float?
+  stressLevel       StressLevel?
+  connected         Boolean            @default(false)
+  lastUpdate        DateTime?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  password          String
+  seatNumber        String?
+  examSessions      ExamSession[]
+  examStudents      ExamStudent[]
+  journalEntries    JournalEntry[]
+  telemetryHistory  TelemetryHistory[]
+  therapistSessions TherapistSession[]
+  upcomingExams     UpcomingExam[]
 }
 
 model Professor {
@@ -77,6 +77,7 @@ model Table {
   @@index([classroomId], map: "Table_classroomId_fkey")
   @@unique([classroomId, positionX, positionY])
 }
+
 model Exam {
   id                 Int                 @id @default(autoincrement())
   title              String
@@ -139,8 +140,52 @@ model TelemetryHistory {
   @@index([studentId], map: "TelemetryHistory_studentId_fkey")
 }
 
+model JournalEntry {
+  id         String   @id @default(uuid())
+  studentId  Int
+  moodRating Float
+  sleepHours Float
+  studyHours Float
+  notes      String   @db.Text
+  date       DateTime @default(now())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  student    Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId], map: "JournalEntry_studentId_fkey")
+}
+
+model TherapistSession {
+  id            String   @id @default(uuid())
+  studentId     Int
+  therapistName String
+  type          String
+  dateTime      DateTime
+  status        String   @default("Scheduled")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  student       Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId], map: "TherapistSession_studentId_fkey")
+}
+
+model UpcomingExam {
+  id              String   @id @default(uuid())
+  studentId       Int
+  courseName      String
+  dateTime        DateTime
+  aiAdvice        String?  @db.Text
+  professorName   String?
+  durationMinutes Int      @default(90)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  student         Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId], map: "UpcomingExam_studentId_fkey")
+}
+
 model ExamSession {
-  id              String   @id
+  id              String   @id @default(uuid())
   studentId       Int
   courseName      String
   dateTime        DateTime
@@ -149,54 +194,10 @@ model ExamSession {
   maxHeartRate    Int
   tableNumber     String
   createdAt       DateTime @default(now())
-  updatedAt       DateTime
-  Student         Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  updatedAt       DateTime @updatedAt
+  student         Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   @@index([studentId], map: "ExamSession_studentId_fkey")
-}
-
-model JournalEntry {
-  id         String   @id
-  studentId  Int
-  moodRating Float
-  sleepHours Float
-  studyHours Float
-  notes      String   @db.Text
-  date       DateTime @default(now())
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime
-  Student    Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
-
-  @@index([studentId], map: "JournalEntry_studentId_fkey")
-}
-
-model TherapistSession {
-  id            String   @id
-  studentId     Int
-  therapistName String
-  type          String
-  dateTime      DateTime
-  status        String   @default("Scheduled")
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime
-  Student       Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
-
-  @@index([studentId], map: "TherapistSession_studentId_fkey")
-}
-
-model UpcomingExam {
-  id              String   @id
-  studentId       Int
-  courseName      String
-  dateTime        DateTime
-  aiAdvice        String?  @db.Text
-  professorName   String?
-  durationMinutes Int      @default(90)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime
-  Student         Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
-
-  @@index([studentId], map: "UpcomingExam_studentId_fkey")
 }
 
 enum Role {
