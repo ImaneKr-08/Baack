@@ -13,9 +13,13 @@ export declare class ClassroomsService {
         columns: number;
     }>;
     findAll(): Promise<({
-        _count: {
-            tables: number;
-        };
+        tables: {
+            id: number;
+            positionX: number;
+            positionY: number;
+            classroomId: number;
+            qrCode: string | null;
+        }[];
     } & {
         id: number;
         name: string;
@@ -27,19 +31,19 @@ export declare class ClassroomsService {
     findOne(id: number): Promise<{
         tables: {
             id: number;
-            classroomId: number;
-            qrCode: string | null;
             positionX: number;
             positionY: number;
+            classroomId: number;
+            qrCode: string | null;
         }[];
         exams: {
             id: number;
             title: string;
+            classroomId: number;
             module: string;
             examDate: Date;
             startTime: Date;
             endTime: Date;
-            classroomId: number;
             professorId: number;
             status: import("@prisma/client").$Enums.ExamStatus;
         }[];
@@ -59,6 +63,11 @@ export declare class ClassroomsService {
         rows: number;
         columns: number;
     }>;
+    updateLayout(classroomId: number, tables: {
+        id: number;
+        positionX: number;
+        positionY: number;
+    }[]): Promise<import("@prisma/client").Prisma.BatchPayload[]>;
     remove(id: number): Promise<{
         id: number;
         name: string;

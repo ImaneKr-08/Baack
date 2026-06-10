@@ -25,11 +25,16 @@ let ClassroomsService = class ClassroomsService {
     async findAll() {
         return this.prisma.classroom.findMany({
             include: {
-                _count: {
-                    select: { tables: true },
+                tables: {
+                    orderBy: [
+                        { positionY: 'asc' },
+                        { positionX: 'asc' },
+                    ],
                 },
             },
-            orderBy: { name: 'asc' },
+            orderBy: {
+                name: 'asc',
+            },
         });
     }
     async findOne(id) {
@@ -51,6 +56,19 @@ let ClassroomsService = class ClassroomsService {
             where: { id },
             data: updateClassroomDto,
         });
+    }
+    async updateLayout(classroomId, tables) {
+        await this.findOne(classroomId);
+        return this.prisma.$transaction(tables.map((table) => this.prisma.table.updateMany({
+            where: {
+                id: table.id,
+                classroomId,
+            },
+            data: {
+                positionX: table.positionX,
+                positionY: table.positionY,
+            },
+        })));
     }
     async remove(id) {
         await this.findOne(id);

@@ -9,11 +9,11 @@ export declare class ExamsService {
     create(createExamDto: CreateExamDto): Promise<{
         id: number;
         title: string;
+        classroomId: number;
         module: string;
         examDate: Date;
         startTime: Date;
         endTime: Date;
-        classroomId: number;
         professorId: number;
         status: import("@prisma/client").$Enums.ExamStatus;
     }>;
@@ -40,11 +40,11 @@ export declare class ExamsService {
     } & {
         id: number;
         title: string;
+        classroomId: number;
         module: string;
         examDate: Date;
         startTime: Date;
         endTime: Date;
-        classroomId: number;
         professorId: number;
         status: import("@prisma/client").$Enums.ExamStatus;
     })[]>;
@@ -85,10 +85,10 @@ export declare class ExamsService {
             };
             table: {
                 id: number;
-                classroomId: number;
-                qrCode: string | null;
                 positionX: number;
                 positionY: number;
+                classroomId: number;
+                qrCode: string | null;
             };
         } & {
             id: number;
@@ -106,44 +106,44 @@ export declare class ExamsService {
     } & {
         id: number;
         title: string;
+        classroomId: number;
         module: string;
         examDate: Date;
         startTime: Date;
         endTime: Date;
-        classroomId: number;
         professorId: number;
         status: import("@prisma/client").$Enums.ExamStatus;
     }>;
     update(id: number, updateExamDto: UpdateExamDto): Promise<{
         id: number;
         title: string;
+        classroomId: number;
         module: string;
         examDate: Date;
         startTime: Date;
         endTime: Date;
-        classroomId: number;
         professorId: number;
         status: import("@prisma/client").$Enums.ExamStatus;
     }>;
     remove(id: number): Promise<{
         id: number;
         title: string;
+        classroomId: number;
         module: string;
         examDate: Date;
         startTime: Date;
         endTime: Date;
-        classroomId: number;
         professorId: number;
         status: import("@prisma/client").$Enums.ExamStatus;
     }>;
     assignProfessor(id: number, professorId: number): Promise<{
         id: number;
         title: string;
+        classroomId: number;
         module: string;
         examDate: Date;
         startTime: Date;
         endTime: Date;
-        classroomId: number;
         professorId: number;
         status: import("@prisma/client").$Enums.ExamStatus;
     }>;
@@ -156,11 +156,11 @@ export declare class ExamsService {
         exam: {
             id: number;
             title: string;
+            classroomId: number;
             module: string;
             examDate: Date;
             startTime: Date;
             endTime: Date;
-            classroomId: number;
             professorId: number;
             status: import("@prisma/client").$Enums.ExamStatus;
         };
@@ -177,11 +177,11 @@ export declare class ExamsService {
         exam: {
             id: number;
             title: string;
+            classroomId: number;
             module: string;
             examDate: Date;
             startTime: Date;
             endTime: Date;
-            classroomId: number;
             professorId: number;
             status: import("@prisma/client").$Enums.ExamStatus;
         };

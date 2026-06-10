@@ -17,6 +17,7 @@ import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { Role } from '../common/enums/roles.enum';
+import { UpdateLayoutDto } from './dto/update-layout.dto';
 
 @ApiTags('classrooms')
 @Controller('classrooms')
@@ -50,16 +51,30 @@ export class ClassroomsController {
 
   @Patch(':id')
   @Roles(Role.ADMIN)
-  @ApiOperation({ summary: 'Update classroom layout (Admin only)' })
+  @ApiOperation({ summary: 'Update classroom information (Admin only)' })
   @ApiResponse({ status: 200, description: 'Classroom successfully updated' })
   @ApiResponse({ status: 404, description: 'Classroom not found' })
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateClassroomDto: UpdateClassroomDto,
   ) {
+    
     return this.classroomsService.update(id, updateClassroomDto);
   }
-
+  @Patch(':id/layout')
+  @Roles(Role.ADMIN)
+  @ApiOperation({ summary: 'Update classroom layout (Admin only)' })
+  @ApiResponse({ status: 200, description: 'Classroom layout successfully updated' })
+  @ApiResponse({ status: 404, description: 'Classroom not found' })
+  updateLayout(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: UpdateLayoutDto,
+  ) {
+    return this.classroomsService.updateLayout(
+      id,
+      body.tables,
+    );
+  }
   @Delete(':id')
   @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Delete classroom (Admin only)' })

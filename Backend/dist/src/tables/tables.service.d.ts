@@ -6,10 +6,10 @@ export declare class TablesService {
     constructor(prisma: PrismaService);
     create(createTableDto: CreateTableDto): Promise<{
         id: number;
-        classroomId: number;
-        qrCode: string | null;
         positionX: number;
         positionY: number;
+        classroomId: number;
+        qrCode: string | null;
     }>;
     findAll(classroomId?: number): Promise<({
         classroom: {
@@ -22,10 +22,10 @@ export declare class TablesService {
         };
     } & {
         id: number;
-        classroomId: number;
-        qrCode: string | null;
         positionX: number;
         positionY: number;
+        classroomId: number;
+        qrCode: string | null;
     })[]>;
     findOne(id: number): Promise<{
         classroom: {
@@ -38,23 +38,23 @@ export declare class TablesService {
         };
     } & {
         id: number;
-        classroomId: number;
-        qrCode: string | null;
         positionX: number;
         positionY: number;
+        classroomId: number;
+        qrCode: string | null;
     }>;
     update(id: number, updateTableDto: UpdateTableDto): Promise<{
         id: number;
-        classroomId: number;
-        qrCode: string | null;
         positionX: number;
         positionY: number;
+        classroomId: number;
+        qrCode: string | null;
     }>;
     remove(id: number): Promise<{
         id: number;
-        classroomId: number;
-        qrCode: string | null;
         positionX: number;
         positionY: number;
+        classroomId: number;
+        qrCode: string | null;
     }>;
 }

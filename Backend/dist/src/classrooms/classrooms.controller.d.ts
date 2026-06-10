@@ -1,6 +1,7 @@
 import { ClassroomsService } from './classrooms.service';
 import { CreateClassroomDto } from './dto/create-classroom.dto';
 import { UpdateClassroomDto } from './dto/update-classroom.dto';
+import { UpdateLayoutDto } from './dto/update-layout.dto';
 export declare class ClassroomsController {
     private readonly classroomsService;
     constructor(classroomsService: ClassroomsService);
@@ -13,9 +14,13 @@ export declare class ClassroomsController {
         columns: number;
     }>;
     findAll(): Promise<({
-        _count: {
-            tables: number;
-        };
+        tables: {
+            id: number;
+            positionX: number;
+            positionY: number;
+            classroomId: number;
+            qrCode: string | null;
+        }[];
     } & {
         id: number;
         name: string;
@@ -27,19 +32,19 @@ export declare class ClassroomsController {
     findOne(id: number): Promise<{
         tables: {
             id: number;
-            classroomId: number;
-            qrCode: string | null;
             positionX: number;
             positionY: number;
+            classroomId: number;
+            qrCode: string | null;
         }[];
         exams: {
             id: number;
             title: string;
+            classroomId: number;
             module: string;
             examDate: Date;
             startTime: Date;
             endTime: Date;
-            classroomId: number;
             professorId: number;
             status: import("@prisma/client").$Enums.ExamStatus;
         }[];
@@ -59,6 +64,7 @@ export declare class ClassroomsController {
         rows: number;
         columns: number;
     }>;
+    updateLayout(id: number, body: UpdateLayoutDto): Promise<import("@prisma/client").Prisma.BatchPayload[]>;
     remove(id: number): Promise<{
         id: number;
         name: string;

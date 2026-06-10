@@ -22,6 +22,7 @@ const jwt_auth_guard_1 = require("../common/guards/jwt-auth.guard");
 const roles_guard_1 = require("../common/guards/roles.guard");
 const roles_decorator_1 = require("../common/decorators/roles.decorator");
 const roles_enum_1 = require("../common/enums/roles.enum");
+const update_layout_dto_1 = require("./dto/update-layout.dto");
 let ClassroomsController = class ClassroomsController {
     classroomsService;
     constructor(classroomsService) {
@@ -38,6 +39,9 @@ let ClassroomsController = class ClassroomsController {
     }
     update(id, updateClassroomDto) {
         return this.classroomsService.update(id, updateClassroomDto);
+    }
+    updateLayout(id, body) {
+        return this.classroomsService.updateLayout(id, body.tables);
     }
     remove(id) {
         return this.classroomsService.remove(id);
@@ -75,7 +79,7 @@ __decorate([
 __decorate([
     (0, common_1.Patch)(':id'),
     (0, roles_decorator_1.Roles)(roles_enum_1.Role.ADMIN),
-    (0, swagger_1.ApiOperation)({ summary: 'Update classroom layout (Admin only)' }),
+    (0, swagger_1.ApiOperation)({ summary: 'Update classroom information (Admin only)' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Classroom successfully updated' }),
     (0, swagger_1.ApiResponse)({ status: 404, description: 'Classroom not found' }),
     __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
@@ -84,6 +88,18 @@ __decorate([
     __metadata("design:paramtypes", [Number, update_classroom_dto_1.UpdateClassroomDto]),
     __metadata("design:returntype", void 0)
 ], ClassroomsController.prototype, "update", null);
+__decorate([
+    (0, common_1.Patch)(':id/layout'),
+    (0, roles_decorator_1.Roles)(roles_enum_1.Role.ADMIN),
+    (0, swagger_1.ApiOperation)({ summary: 'Update classroom layout (Admin only)' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Classroom layout successfully updated' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Classroom not found' }),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, update_layout_dto_1.UpdateLayoutDto]),
+    __metadata("design:returntype", void 0)
+], ClassroomsController.prototype, "updateLayout", null);
 __decorate([
     (0, common_1.Delete)(':id'),
     (0, roles_decorator_1.Roles)(roles_enum_1.Role.ADMIN),

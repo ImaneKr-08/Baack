@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,6 +5,198 @@ generator client {
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int        @id @default(autoincrement())
+  name      String
+  email     String     @unique
+  password  String
+  role      Role       @default(PROFESSOR)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  professor Professor?
+}
+
+model Student {
+  id               Int                @id @default(autoincrement())
+  firstName        String
+  lastName         String
+  email            String             @unique
+  department       String
+  studentCode      String             @unique
+  braceletId       String?            @unique
+  heartRate        Int?
+  stressScore      Float?
+  stressLevel      StressLevel?
+  connected        Boolean            @default(false)
+  lastUpdate       DateTime?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  password         String
+  seatNumber       String?
+  ExamSession      ExamSession[]
+  examStudents     ExamStudent[]
+  JournalEntry     JournalEntry[]
+  telemetryHistory TelemetryHistory[]
+  TherapistSession TherapistSession[]
+  UpcomingExam     UpcomingExam[]
+}
+
+model Professor {
+  id         Int    @id @default(autoincrement())
+  firstName  String
+  lastName   String
+  email      String @unique
+  department String
+  userId     Int    @unique
+  exams      Exam[]
+  user       User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Classroom {
+  id       Int     @id @default(autoincrement())
+  name     String
+  building String
+  capacity Int
+  rows     Int
+  columns  Int
+  exams    Exam[]
+  tables   Table[]
+}
+
+model Table {
+  id           Int           @id @default(autoincrement())
+  classroomId  Int
+  qrCode       String?       @db.Text
+  positionX    Int
+  positionY    Int
+  examStudents ExamStudent[]
+  classroom    Classroom     @relation(fields: [classroomId], references: [id], onDelete: Cascade)
+
+  @@index([classroomId], map: "Table_classroomId_fkey")
+  @@unique([classroomId, positionX, positionY])
+}
+model Exam {
+  id                 Int                 @id @default(autoincrement())
+  title              String
+  module             String
+  examDate           DateTime
+  startTime          DateTime
+  endTime            DateTime
+  classroomId        Int
+  professorId        Int
+  status             ExamStatus          @default(PENDING)
+  classroom          Classroom           @relation(fields: [classroomId], references: [id])
+  professor          Professor           @relation(fields: [professorId], references: [id])
+  examStudents       ExamStudent[]
+  monitoringSessions MonitoringSession[]
+
+  @@index([classroomId], map: "Exam_classroomId_fkey")
+  @@index([professorId], map: "Exam_professorId_fkey")
+}
+
+model ExamStudent {
+  id        Int     @id @default(autoincrement())
+  examId    Int
+  studentId Int
+  tableId   Int
+  exam      Exam    @relation(fields: [examId], references: [id], onDelete: Cascade)
+  student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  table     Table   @relation(fields: [tableId], references: [id], onDelete: Cascade)
+
+  @@unique([examId, studentId])
+  @@unique([examId, tableId])
+  @@index([studentId], map: "ExamStudent_studentId_fkey")
+  @@index([tableId], map: "ExamStudent_tableId_fkey")
+}
+
+model MonitoringSession {
+  id               Int                @id @default(autoincrement())
+  examId           Int
+  startedAt        DateTime           @default(now())
+  endedAt          DateTime?
+  active           Boolean            @default(true)
+  exam             Exam               @relation(fields: [examId], references: [id], onDelete: Cascade)
+  telemetryHistory TelemetryHistory[]
+
+  @@index([examId], map: "MonitoringSession_examId_fkey")
+}
+
+model TelemetryHistory {
+  id          Int               @id @default(autoincrement())
+  studentId   Int
+  sessionId   Int
+  braceletId  String
+  heartRate   Int
+  stressScore Float
+  stressLevel StressLevel
+  timestamp   DateTime          @default(now())
+  session     MonitoringSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  student     Student           @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId], map: "TelemetryHistory_sessionId_fkey")
+  @@index([studentId], map: "TelemetryHistory_studentId_fkey")
+}
+
+model ExamSession {
+  id              String   @id
+  studentId       Int
+  courseName      String
+  dateTime        DateTime
+  durationMinutes Int
+  avgStressScore  Float
+  maxHeartRate    Int
+  tableNumber     String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime
+  Student         Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId], map: "ExamSession_studentId_fkey")
+}
+
+model JournalEntry {
+  id         String   @id
+  studentId  Int
+  moodRating Float
+  sleepHours Float
+  studyHours Float
+  notes      String   @db.Text
+  date       DateTime @default(now())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime
+  Student    Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId], map: "JournalEntry_studentId_fkey")
+}
+
+model TherapistSession {
+  id            String   @id
+  studentId     Int
+  therapistName String
+  type          String
+  dateTime      DateTime
+  status        String   @default("Scheduled")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime
+  Student       Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId], map: "TherapistSession_studentId_fkey")
+}
+
+model UpcomingExam {
+  id              String   @id
+  studentId       Int
+  courseName      String
+  dateTime        DateTime
+  aiAdvice        String?  @db.Text
+  professorName   String?
+  durationMinutes Int      @default(90)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime
+  Student         Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId], map: "UpcomingExam_studentId_fkey")
 }
 
 enum Role {
@@ -25,126 +214,4 @@ enum StressLevel {
   BASELINE
   MILD_STRESS
   HIGH_STRESS
-}
-
-model User {
-  id        Int      @id @default(autoincrement())
-  name      String
-  email     String   @unique
-  password  String
-  role      Role     @default(PROFESSOR)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  professor Professor?
-}
-
-model Student {
-  id          Int          @id @default(autoincrement())
-  firstName   String
-  lastName    String
-  email       String       @unique
-  password  String
-  department  String
-  studentCode String       @unique
-  braceletId  String?      @unique
-  heartRate   Int?
-  stressScore Float?
-  stressLevel StressLevel?
-  connected   Boolean      @default(false)
-  lastUpdate  DateTime?
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-
-  examStudents     ExamStudent[]
-  telemetryHistory TelemetryHistory[]
-}
-
-model Professor {
-  id         Int    @id @default(autoincrement())
-  firstName  String
-  lastName   String
-  email      String @unique
-  department String
-  userId     Int    @unique
-  user       User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  exams Exam[]
-}
-
-model Classroom {
-  id       Int    @id @default(autoincrement())
-  name     String
-  building String
-  capacity Int
-  rows     Int
-  columns  Int
-
-  tables Table[]
-  exams  Exam[]
-}
-
-model Table {
-  id          Int       @id @default(autoincrement())
-  classroomId Int
-  classroom   Classroom @relation(fields: [classroomId], references: [id], onDelete: Cascade)
-  qrCode      String?   @db.Text
-  positionX   Int
-  positionY   Int
-
-  examStudents ExamStudent[]
-}
-
-model Exam {
-  id          Int        @id @default(autoincrement())
-  title       String
-  module      String
-  examDate    DateTime
-  startTime   DateTime
-  endTime     DateTime
-  classroomId Int
-  classroom   Classroom  @relation(fields: [classroomId], references: [id])
-  professorId Int
-  professor   Professor  @relation(fields: [professorId], references: [id])
-  status      ExamStatus @default(PENDING)
-
-  examStudents       ExamStudent[]
-  monitoringSessions MonitoringSession[]
-}
-
-model ExamStudent {
-  id        Int     @id @default(autoincrement())
-  examId    Int
-  exam      Exam    @relation(fields: [examId], references: [id], onDelete: Cascade)
-  studentId Int
-  student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  tableId   Int
-  table     Table   @relation(fields: [tableId], references: [id], onDelete: Cascade)
-
-  @@unique([examId, studentId])
-  @@unique([examId, tableId])
-}
-
-model MonitoringSession {
-  id        Int       @id @default(autoincrement())
-  examId    Int
-  exam      Exam      @relation(fields: [examId], references: [id], onDelete: Cascade)
-  startedAt DateTime  @default(now())
-  endedAt   DateTime?
-  active    Boolean   @default(true)
-
-  telemetryHistory TelemetryHistory[]
-}
-
-model TelemetryHistory {
-  id          Int               @id @default(autoincrement())
-  studentId   Int
-  student     Student           @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  sessionId   Int
-  session     MonitoringSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  braceletId  String
-  heartRate   Int
-  stressScore Float
-  stressLevel StressLevel
-  timestamp   DateTime          @default(now())
 }

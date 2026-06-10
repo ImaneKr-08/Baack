@@ -41,11 +41,11 @@ export declare class ProfessorsController {
         exams: {
             id: number;
             title: string;
+            classroomId: number;
             module: string;
             examDate: Date;
             startTime: Date;
             endTime: Date;
-            classroomId: number;
             professorId: number;
             status: import("@prisma/client").$Enums.ExamStatus;
         }[];
