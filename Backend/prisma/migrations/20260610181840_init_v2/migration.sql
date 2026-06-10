@@ -28,6 +28,8 @@ CREATE TABLE `Student` (
     `lastUpdate` DATETIME(3) NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
+    `password` VARCHAR(191) NOT NULL,
+    `seatNumber` VARCHAR(191) NULL,
 
     UNIQUE INDEX `Student_email_key`(`email`),
     UNIQUE INDEX `Student_studentCode_key`(`studentCode`),
@@ -69,6 +71,8 @@ CREATE TABLE `Table` (
     `positionX` INTEGER NOT NULL,
     `positionY` INTEGER NOT NULL,
 
+    INDEX `Table_classroomId_fkey`(`classroomId`),
+    UNIQUE INDEX `Table_classroomId_positionX_positionY_key`(`classroomId`, `positionX`, `positionY`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -84,6 +88,8 @@ CREATE TABLE `Exam` (
     `professorId` INTEGER NOT NULL,
     `status` ENUM('PENDING', 'ONGOING', 'COMPLETED') NOT NULL DEFAULT 'PENDING',
 
+    INDEX `Exam_classroomId_fkey`(`classroomId`),
+    INDEX `Exam_professorId_fkey`(`professorId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -94,6 +100,8 @@ CREATE TABLE `ExamStudent` (
     `studentId` INTEGER NOT NULL,
     `tableId` INTEGER NOT NULL,
 
+    INDEX `ExamStudent_studentId_fkey`(`studentId`),
+    INDEX `ExamStudent_tableId_fkey`(`tableId`),
     UNIQUE INDEX `ExamStudent_examId_studentId_key`(`examId`, `studentId`),
     UNIQUE INDEX `ExamStudent_examId_tableId_key`(`examId`, `tableId`),
     PRIMARY KEY (`id`)
@@ -107,6 +115,7 @@ CREATE TABLE `MonitoringSession` (
     `endedAt` DATETIME(3) NULL,
     `active` BOOLEAN NOT NULL DEFAULT true,
 
+    INDEX `MonitoringSession_examId_fkey`(`examId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -121,6 +130,72 @@ CREATE TABLE `TelemetryHistory` (
     `stressLevel` ENUM('BASELINE', 'MILD_STRESS', 'HIGH_STRESS') NOT NULL,
     `timestamp` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
+    INDEX `TelemetryHistory_sessionId_fkey`(`sessionId`),
+    INDEX `TelemetryHistory_studentId_fkey`(`studentId`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `JournalEntry` (
+    `id` VARCHAR(191) NOT NULL,
+    `studentId` INTEGER NOT NULL,
+    `moodRating` DOUBLE NOT NULL,
+    `sleepHours` DOUBLE NOT NULL,
+    `studyHours` DOUBLE NOT NULL,
+    `notes` TEXT NOT NULL,
+    `date` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+
+    INDEX `JournalEntry_studentId_fkey`(`studentId`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `TherapistSession` (
+    `id` VARCHAR(191) NOT NULL,
+    `studentId` INTEGER NOT NULL,
+    `therapistName` VARCHAR(191) NOT NULL,
+    `type` VARCHAR(191) NOT NULL,
+    `dateTime` DATETIME(3) NOT NULL,
+    `status` VARCHAR(191) NOT NULL DEFAULT 'Scheduled',
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+
+    INDEX `TherapistSession_studentId_fkey`(`studentId`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `UpcomingExam` (
+    `id` VARCHAR(191) NOT NULL,
+    `studentId` INTEGER NOT NULL,
+    `courseName` VARCHAR(191) NOT NULL,
+    `dateTime` DATETIME(3) NOT NULL,
+    `aiAdvice` TEXT NULL,
+    `professorName` VARCHAR(191) NULL,
+    `durationMinutes` INTEGER NOT NULL DEFAULT 90,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+
+    INDEX `UpcomingExam_studentId_fkey`(`studentId`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `ExamSession` (
+    `id` VARCHAR(191) NOT NULL,
+    `studentId` INTEGER NOT NULL,
+    `courseName` VARCHAR(191) NOT NULL,
+    `dateTime` DATETIME(3) NOT NULL,
+    `durationMinutes` INTEGER NOT NULL,
+    `avgStressScore` DOUBLE NOT NULL,
+    `maxHeartRate` INTEGER NOT NULL,
+    `tableNumber` VARCHAR(191) NOT NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+
+    INDEX `ExamSession_studentId_fkey`(`studentId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -149,7 +224,19 @@ ALTER TABLE `ExamStudent` ADD CONSTRAINT `ExamStudent_tableId_fkey` FOREIGN KEY 
 ALTER TABLE `MonitoringSession` ADD CONSTRAINT `MonitoringSession_examId_fkey` FOREIGN KEY (`examId`) REFERENCES `Exam`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE `TelemetryHistory` ADD CONSTRAINT `TelemetryHistory_sessionId_fkey` FOREIGN KEY (`sessionId`) REFERENCES `MonitoringSession`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE `TelemetryHistory` ADD CONSTRAINT `TelemetryHistory_studentId_fkey` FOREIGN KEY (`studentId`) REFERENCES `Student`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `TelemetryHistory` ADD CONSTRAINT `TelemetryHistory_sessionId_fkey` FOREIGN KEY (`sessionId`) REFERENCES `MonitoringSession`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `JournalEntry` ADD CONSTRAINT `JournalEntry_studentId_fkey` FOREIGN KEY (`studentId`) REFERENCES `Student`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `TherapistSession` ADD CONSTRAINT `TherapistSession_studentId_fkey` FOREIGN KEY (`studentId`) REFERENCES `Student`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `UpcomingExam` ADD CONSTRAINT `UpcomingExam_studentId_fkey` FOREIGN KEY (`studentId`) REFERENCES `Student`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `ExamSession` ADD CONSTRAINT `ExamSession_studentId_fkey` FOREIGN KEY (`studentId`) REFERENCES `Student`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
