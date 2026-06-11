@@ -51,7 +51,16 @@ let ClassroomsService = class ClassroomsService {
         return classroom;
     }
     async update(id, updateClassroomDto) {
-        await this.findOne(id);
+        const classroom = await this.findOne(id);
+        const newRows = updateClassroomDto.rows ??
+            classroom.rows;
+        const newColumns = updateClassroomDto.columns ??
+            classroom.columns;
+        const tableOutsideBounds = classroom.tables.some(table => table.positionX >= newColumns ||
+            table.positionY >= newRows);
+        if (tableOutsideBounds) {
+            throw new Error('Cannot resize classroom because some tables would be outside the new dimensions.');
+        }
         return this.prisma.classroom.update({
             where: { id },
             data: updateClassroomDto,
@@ -62,7 +71,6 @@ let ClassroomsService = class ClassroomsService {
         return this.prisma.$transaction(tables.map((table) => this.prisma.table.updateMany({
             where: {
                 id: table.id,
-                classroomId,
             },
             data: {
                 positionX: table.positionX,

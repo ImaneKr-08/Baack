@@ -6,10 +6,13 @@ export declare class StudentsService {
     private prisma;
     constructor(prisma: PrismaService);
     create(createStudentDto: CreateStudentDto): Promise<{
-        firstName: string;
-        lastName: string;
+        id: number;
         email: string;
         password: string;
+        createdAt: Date;
+        updatedAt: Date;
+        firstName: string;
+        lastName: string;
         department: string;
         studentCode: string;
         braceletId: string | null;
@@ -18,16 +21,17 @@ export declare class StudentsService {
         stressLevel: import("@prisma/client").$Enums.StressLevel | null;
         connected: boolean;
         lastUpdate: Date | null;
-        createdAt: Date;
-        updatedAt: Date;
-        id: number;
+        seatNumber: string | null;
     }>;
     findAll(paginationDto: PaginationDto, department?: string): Promise<{
         items: {
-            firstName: string;
-            lastName: string;
+            id: number;
             email: string;
             password: string;
+            createdAt: Date;
+            updatedAt: Date;
+            firstName: string;
+            lastName: string;
             department: string;
             studentCode: string;
             braceletId: string | null;
@@ -36,9 +40,7 @@ export declare class StudentsService {
             stressLevel: import("@prisma/client").$Enums.StressLevel | null;
             connected: boolean;
             lastUpdate: Date | null;
-            createdAt: Date;
-            updatedAt: Date;
-            id: number;
+            seatNumber: string | null;
         }[];
         total: number;
         page: number;
@@ -47,23 +49,23 @@ export declare class StudentsService {
     }>;
     findOne(id: number): Promise<{
         examStudents: ({
+            table: {
+                id: number;
+                positionX: number;
+                positionY: number;
+                classroomId: number;
+                qrCode: string | null;
+            };
             exam: {
                 id: number;
                 title: string;
+                classroomId: number;
                 module: string;
                 examDate: Date;
                 startTime: Date;
                 endTime: Date;
-                classroomId: number;
                 professorId: number;
                 status: import("@prisma/client").$Enums.ExamStatus;
-            };
-            table: {
-                id: number;
-                classroomId: number;
-                qrCode: string | null;
-                positionX: number;
-                positionY: number;
             };
         } & {
             id: number;
@@ -72,10 +74,13 @@ export declare class StudentsService {
             tableId: number;
         })[];
     } & {
-        firstName: string;
-        lastName: string;
+        id: number;
         email: string;
         password: string;
+        createdAt: Date;
+        updatedAt: Date;
+        firstName: string;
+        lastName: string;
         department: string;
         studentCode: string;
         braceletId: string | null;
@@ -84,15 +89,16 @@ export declare class StudentsService {
         stressLevel: import("@prisma/client").$Enums.StressLevel | null;
         connected: boolean;
         lastUpdate: Date | null;
-        createdAt: Date;
-        updatedAt: Date;
-        id: number;
+        seatNumber: string | null;
     }>;
     update(id: number, updateStudentDto: UpdateStudentDto): Promise<{
-        firstName: string;
-        lastName: string;
+        id: number;
         email: string;
         password: string;
+        createdAt: Date;
+        updatedAt: Date;
+        firstName: string;
+        lastName: string;
         department: string;
         studentCode: string;
         braceletId: string | null;
@@ -101,15 +107,16 @@ export declare class StudentsService {
         stressLevel: import("@prisma/client").$Enums.StressLevel | null;
         connected: boolean;
         lastUpdate: Date | null;
-        createdAt: Date;
-        updatedAt: Date;
-        id: number;
+        seatNumber: string | null;
     }>;
     remove(id: number): Promise<{
-        firstName: string;
-        lastName: string;
+        id: number;
         email: string;
         password: string;
+        createdAt: Date;
+        updatedAt: Date;
+        firstName: string;
+        lastName: string;
         department: string;
         studentCode: string;
         braceletId: string | null;
@@ -118,8 +125,6 @@ export declare class StudentsService {
         stressLevel: import("@prisma/client").$Enums.StressLevel | null;
         connected: boolean;
         lastUpdate: Date | null;
-        createdAt: Date;
-        updatedAt: Date;
-        id: number;
+        seatNumber: string | null;
     }>;
 }

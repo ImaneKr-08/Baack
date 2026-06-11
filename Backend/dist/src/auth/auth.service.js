@@ -81,7 +81,7 @@ let AuthService = class AuthService {
         const accessToken = this.jwtService.sign(payload, {
             secret: process.env.JWT_SECRET ||
                 'proctor_insight_jwt_secret_key_2026_xyz',
-            expiresIn: '15m',
+            expiresIn: '60m',
         });
         const refreshToken = this.jwtService.sign(payload, {
             secret: process.env.JWT_REFRESH_SECRET ||

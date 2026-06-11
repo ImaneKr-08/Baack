@@ -9,7 +9,7 @@ export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
-  ) {}
+  ) { }
 
   async login(loginDto: LoginDto) {
     const user = await this.usersService.findByEmail(loginDto.email);
@@ -66,7 +66,7 @@ export class AuthService {
       secret:
         process.env.JWT_SECRET ||
         'proctor_insight_jwt_secret_key_2026_xyz',
-      expiresIn: '15m',
+      expiresIn: '60m',
     });
 
     const refreshToken = this.jwtService.sign(payload, {

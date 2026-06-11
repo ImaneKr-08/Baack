@@ -82,6 +82,7 @@ export declare class ExamsController {
                 stressLevel: import("@prisma/client").$Enums.StressLevel | null;
                 connected: boolean;
                 lastUpdate: Date | null;
+                seatNumber: string | null;
             };
             table: {
                 id: number;
