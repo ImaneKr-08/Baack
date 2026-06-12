@@ -1,3 +1,4 @@
+import type { Response } from 'express';
 import { QrCodesService } from './qr-codes.service';
 export declare class QrCodesController {
     private readonly qrCodesService;
@@ -12,4 +13,5 @@ export declare class QrCodesController {
         tables: any[];
     }>;
     download(tableId: number, res: any): Promise<void>;
+    getImage(tableId: number, res: Response): Promise<void>;
 }

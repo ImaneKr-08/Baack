@@ -2,10 +2,11 @@ import { Injectable, NotFoundException, ConflictException } from '@nestjs/common
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateTableDto } from './dto/create-table.dto';
 import { UpdateTableDto } from './dto/update-table.dto';
+import { QrCodesService } from '../qr-codes/qr-codes.service';
 
 @Injectable()
 export class TablesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService, private qrCodesService: QrCodesService) {}
 
   async create(createTableDto: CreateTableDto) {
     const { classroomId, positionX, positionY } = createTableDto;
@@ -30,8 +31,14 @@ export class TablesService {
       throw new ConflictException(`A table already exists at position (${positionX}, ${positionY})`);
     }
 
-    return this.prisma.table.create({
+    const table = await this.prisma.table.create({
       data: createTableDto,
+    });
+
+    await this.qrCodesService.generateQrCodeForTable(table.id);
+
+    return this.prisma.table.findUnique({
+      where: { id: table.id },
     });
   }
 

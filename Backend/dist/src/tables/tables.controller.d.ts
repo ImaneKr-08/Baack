@@ -6,11 +6,11 @@ export declare class TablesController {
     constructor(tablesService: TablesService);
     create(createTableDto: CreateTableDto): Promise<{
         id: number;
-        positionX: number;
-        positionY: number;
         classroomId: number;
         qrCode: string | null;
-    }>;
+        positionX: number;
+        positionY: number;
+    } | null>;
     findAll(classroomId?: string): Promise<({
         classroom: {
             id: number;
@@ -22,10 +22,10 @@ export declare class TablesController {
         };
     } & {
         id: number;
-        positionX: number;
-        positionY: number;
         classroomId: number;
         qrCode: string | null;
+        positionX: number;
+        positionY: number;
     })[]>;
     findOne(id: number): Promise<{
         classroom: {
@@ -38,23 +38,23 @@ export declare class TablesController {
         };
     } & {
         id: number;
-        positionX: number;
-        positionY: number;
         classroomId: number;
         qrCode: string | null;
+        positionX: number;
+        positionY: number;
     }>;
     update(id: number, updateTableDto: UpdateTableDto): Promise<{
         id: number;
-        positionX: number;
-        positionY: number;
         classroomId: number;
         qrCode: string | null;
+        positionX: number;
+        positionY: number;
     }>;
     remove(id: number): Promise<{
         id: number;
-        positionX: number;
-        positionY: number;
         classroomId: number;
         qrCode: string | null;
+        positionX: number;
+        positionY: number;
     }>;
 }

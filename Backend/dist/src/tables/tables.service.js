@@ -12,10 +12,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.TablesService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
+const qr_codes_service_1 = require("../qr-codes/qr-codes.service");
 let TablesService = class TablesService {
     prisma;
-    constructor(prisma) {
+    qrCodesService;
+    constructor(prisma, qrCodesService) {
         this.prisma = prisma;
+        this.qrCodesService = qrCodesService;
     }
     async create(createTableDto) {
         const { classroomId, positionX, positionY } = createTableDto;
@@ -34,8 +37,12 @@ let TablesService = class TablesService {
         if (existingTable) {
             throw new common_1.ConflictException(`A table already exists at position (${positionX}, ${positionY})`);
         }
-        return this.prisma.table.create({
+        const table = await this.prisma.table.create({
             data: createTableDto,
+        });
+        await this.qrCodesService.generateQrCodeForTable(table.id);
+        return this.prisma.table.findUnique({
+            where: { id: table.id },
         });
     }
     async findAll(classroomId) {
@@ -100,6 +107,6 @@ let TablesService = class TablesService {
 exports.TablesService = TablesService;
 exports.TablesService = TablesService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService, qr_codes_service_1.QrCodesService])
 ], TablesService);
 //# sourceMappingURL=tables.service.js.map

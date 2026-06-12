@@ -7,7 +7,7 @@ import {
   UseGuards,
   ParseIntPipe,
 } from '@nestjs/common';
-import { Response } from 'express';
+import type { Response } from 'express';
 import { ApiBearerAuth, ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { QrCodesService } from './qr-codes.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
@@ -42,6 +42,7 @@ export class QrCodesController {
   async generateBatch(@Param('classroomId', ParseIntPipe) classroomId: number) {
     return this.qrCodesService.generateBatchForClassroom(classroomId);
   }
+  
 
   @Get('download/:tableId')
   @ApiOperation({ summary: 'Download QR code image for a table' })
@@ -55,6 +56,19 @@ export class QrCodesController {
 
     res.setHeader('Content-Type', 'image/png');
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.send(buffer);
+  }
+  @Get(':tableId')
+  @ApiOperation({ summary: 'Display QR code image for a table' })
+  @ApiResponse({ status: 200, description: 'Returns PNG image' })
+  async getImage(
+    @Param('tableId', ParseIntPipe) tableId: number,
+    @Res() res: Response,
+  ) {
+    const { buffer } =
+      await this.qrCodesService.getQrCodeBuffer(tableId);
+
+    res.setHeader('Content-Type', 'image/png');
     res.send(buffer);
   }
 }

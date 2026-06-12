@@ -10,11 +10,13 @@ exports.TablesModule = void 0;
 const common_1 = require("@nestjs/common");
 const tables_service_1 = require("./tables.service");
 const tables_controller_1 = require("./tables.controller");
+const qr_codes_module_1 = require("../qr-codes/qr-codes.module");
 let TablesModule = class TablesModule {
 };
 exports.TablesModule = TablesModule;
 exports.TablesModule = TablesModule = __decorate([
     (0, common_1.Module)({
+        imports: [qr_codes_module_1.QrCodesModule],
         controllers: [tables_controller_1.TablesController],
         providers: [tables_service_1.TablesService],
         exports: [tables_service_1.TablesService],
