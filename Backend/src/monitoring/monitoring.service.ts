@@ -53,7 +53,7 @@ export class MonitoringService {
     const examStudents = await this.prisma.examStudent.findMany({
       where: { examId: session.examId },
       include: {
-        student: true,
+        student: { include: { user: true } },
         table: true,
       },
     });
@@ -62,10 +62,9 @@ export class MonitoringService {
       assignmentId: es.id,
       studentId: es.studentId,
       studentCode: es.student.studentCode,
-      firstName: es.student.firstName,
-      lastName: es.student.lastName,
-      email: es.student.email,
-      department: es.student.department,
+      firstName: es.student.user.firstName,
+      lastName: es.student.user.lastName,
+      email: es.student.user.email,
       braceletId: es.student.braceletId,
       heartRate: es.student.heartRate,
       stressScore: es.student.stressScore,
@@ -83,19 +82,24 @@ export class MonitoringService {
   async getSessionHistory(sessionId: number) {
     await this.getSession(sessionId);
 
-    return this.prisma.telemetryHistory.findMany({
+    const history = await this.prisma.telemetryHistory.findMany({
       where: { sessionId },
       include: {
         student: {
-          select: {
-            firstName: true,
-            lastName: true,
-            studentCode: true,
-          },
+          include: { user: true },
         },
       },
       orderBy: { timestamp: 'desc' },
     });
+
+    return history.map(h => ({
+      ...h,
+      student: {
+        firstName: h.student.user.firstName,
+        lastName: h.student.user.lastName,
+        studentCode: h.student.studentCode,
+      }
+    }));
   }
 
   async getSessionStatistics(sessionId: number) {
@@ -159,7 +163,7 @@ export class MonitoringService {
     const studentIds = Object.keys(studentData).map(Number);
     const students = await this.prisma.student.findMany({
       where: { id: { in: studentIds } },
-      select: { id: true, firstName: true, lastName: true, studentCode: true },
+      select: { id: true, user: true, studentCode: true },
     });
 
     const studentSummaries = students.map((s) => {
@@ -167,8 +171,8 @@ export class MonitoringService {
       return {
         studentId: s.id,
         studentCode: s.studentCode,
-        firstName: s.firstName,
-        lastName: s.lastName,
+        firstName: s.user.firstName,
+        lastName: s.user.lastName,
         averageHeartRate: Math.round(data.hrSum / data.count),
         averageStressScore: parseFloat((data.stressSum / data.count).toFixed(2)),
         recordsCount: data.count,

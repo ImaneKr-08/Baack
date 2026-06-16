@@ -37,13 +37,11 @@ export class StudentsController {
 
   @Get()
   @ApiOperation({ summary: 'Get all students' })
-  @ApiQuery({ name: 'department', required: false, type: String })
   @ApiResponse({ status: 200, description: 'Return paginated list of students' })
   findAll(
     @Query() paginationDto: PaginationDto,
-    @Query('department') department?: string,
   ) {
-    return this.studentsService.findAll(paginationDto, department);
+    return this.studentsService.findAll(paginationDto);
   }
 
   @Get(':id')

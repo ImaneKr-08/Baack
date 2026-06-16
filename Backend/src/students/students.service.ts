@@ -4,12 +4,17 @@ import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
 import { PaginationDto } from '../common/dto/pagination.dto';
 import * as bcrypt from 'bcrypt';
+import { MailService } from '../mail/mail.service';
+
 @Injectable()
 export class StudentsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private mailService: MailService,
+  ) {}
 
   async create(createStudentDto: CreateStudentDto) {
-    const emailExists = await this.prisma.student.findUnique({
+    const emailExists = await this.prisma.user.findUnique({
       where: { email: createStudentDto.email },
     });
 
@@ -46,31 +51,52 @@ export class StudentsService {
       10,
     );
 
-    return this.prisma.student.create({
+    const studentRecord = await this.prisma.user.create({
       data: {
-        ...createStudentDto,
+        firstName: createStudentDto.firstName,
+        lastName: createStudentDto.lastName,
+        email: createStudentDto.email,
         password: hashedPassword,
+        role: 'STUDENT',
+        student: {
+          create: {
+            studentCode: createStudentDto.studentCode,
+            group: createStudentDto.group,
+            braceletId: createStudentDto.braceletId,
+          }
+        }
       },
+      include: {
+        student: true,
+      }
     });
+
+    try {
+      await this.mailService.sendStudentCredentials(
+        createStudentDto.email,
+        `${createStudentDto.firstName} ${createStudentDto.lastName}`,
+        createStudentDto.password,
+      );
+    } catch (error) {
+      console.error('Email sending failed:', error);
+    }
+
+    return studentRecord;
   }
 
-  async findAll(paginationDto: PaginationDto, department?: string) {
+  async findAll(paginationDto: PaginationDto) {
     const page = paginationDto.page ?? 1;
     const limit = paginationDto.limit ?? 100;
     const skip = (page - 1) * limit;
 
     const where: any = {};
 
-    if (department) {
-      where.department = department;
-    }
-
     const search = paginationDto.search;
     if (search) {
       where.OR = [
-        { firstName: { contains: search } },
-        { lastName: { contains: search } },
-        { email: { contains: search } },
+        { user: { firstName: { contains: search } } },
+        { user: { lastName: { contains: search } } },
+        { user: { email: { contains: search } } },
         { studentCode: { contains: search } },
       ];
     }
@@ -80,7 +106,7 @@ export class StudentsService {
         where,
         skip,
         take: limit,
-        orderBy: { lastName: 'asc' },
+        include: { user: true },
       }),
       this.prisma.student.count({ where }),
     ]);
@@ -98,6 +124,7 @@ export class StudentsService {
     const student = await this.prisma.student.findUnique({
       where: { id },
       include: {
+        user: true,
         examStudents: {
           include: {
             exam: true,
@@ -115,14 +142,14 @@ export class StudentsService {
   }
 
   async update(id: number, updateStudentDto: UpdateStudentDto) {
-    await this.findOne(id);
+    const student = await this.findOne(id);
 
     if (updateStudentDto.email) {
-      const emailExists = await this.prisma.student.findFirst({
-        where: { email: updateStudentDto.email, NOT: { id } },
+      const emailExists = await this.prisma.user.findFirst({
+        where: { email: updateStudentDto.email, NOT: { id: student.userId } },
       });
       if (emailExists) {
-        throw new ConflictException('Email already registered for another student');
+        throw new ConflictException('Email already registered for another user');
       }
     }
 
@@ -144,9 +171,25 @@ export class StudentsService {
       }
     }
 
+    if (updateStudentDto.email || updateStudentDto.firstName || updateStudentDto.lastName) {
+      await this.prisma.user.update({
+        where: { id: student.userId },
+        data: {
+          email: updateStudentDto.email,
+          firstName: updateStudentDto.firstName,
+          lastName: updateStudentDto.lastName,
+        }
+      });
+    }
+
     return this.prisma.student.update({
       where: { id },
-      data: updateStudentDto,
+      data: {
+        studentCode: updateStudentDto.studentCode,
+        group: updateStudentDto.group,
+        braceletId: updateStudentDto.braceletId,
+      },
+      include: { user: true },
     });
   }
 

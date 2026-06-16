@@ -29,7 +29,7 @@ export class AuthService {
 
     return this.generateTokens(
       user.id,
-      user.name,
+      `${user.firstName} ${user.lastName}`,
       user.email,
       user.role,
     );
@@ -44,7 +44,7 @@ export class AuthService {
 
     return this.generateTokens(
       user.id,
-      user.name,
+      `${user.firstName} ${user.lastName}`,
       user.email,
       user.role,
     );

@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
@@ -14,9 +15,16 @@ import { StudentsModule } from './students/students.module';
 import { TablesModule } from './tables/tables.module';
 import { UsersModule } from './users/users.module';
 import { MailModule } from './mail/mail.module';
+import configuration from './config/configuration';
+import { validate } from './config/env.validation';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      load: [configuration],
+      validate,
+    }),
     PrismaModule,
     AuthModule,
     ClassroomsModule,

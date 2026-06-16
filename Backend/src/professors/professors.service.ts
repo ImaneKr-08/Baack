@@ -21,7 +21,6 @@ export class ProfessorsService {
       firstName,
       lastName,
       email,
-      department,
       password,
     } = createProfessorDto;
 
@@ -38,7 +37,8 @@ export class ProfessorsService {
     const professor = await this.prisma.$transaction(async (tx) => {
       const user = await tx.user.create({
         data: {
-          name: `${firstName} ${lastName}`,
+          firstName,
+          lastName,
           email,
           password: hashedPassword,
           role: 'PROFESSOR',
@@ -47,10 +47,6 @@ export class ProfessorsService {
 
       return tx.professor.create({
         data: {
-          firstName,
-          lastName,
-          email,
-          department,
           userId: user.id,
         },
         include: {
@@ -82,16 +78,7 @@ export class ProfessorsService {
   async findAll() {
     return this.prisma.professor.findMany({
       include: {
-        user: {
-          select: {
-            id: true,
-            role: true,
-            createdAt: true,
-          },
-        },
-      },
-      orderBy: {
-        lastName: 'asc',
+        user: true,
       },
     });
   }
@@ -100,13 +87,7 @@ export class ProfessorsService {
     const professor = await this.prisma.professor.findUnique({
       where: { id },
       include: {
-        user: {
-          select: {
-            id: true,
-            role: true,
-            createdAt: true,
-          },
-        },
+        user: true,
         exams: true,
       },
     });
@@ -130,13 +111,12 @@ export class ProfessorsService {
       firstName,
       lastName,
       email,
-      department,
       password,
     } = updateProfessorDto;
 
-    if (email && email !== professor.email) {
-      const existingUser = await this.prisma.user.findUnique({
-        where: { email },
+    if (email) {
+      const existingUser = await this.prisma.user.findFirst({
+        where: { email, NOT: { id: professor.userId } },
       });
 
       if (existingUser) {
@@ -147,11 +127,8 @@ export class ProfessorsService {
     return this.prisma.$transaction(async (tx) => {
       const userUpdateData: any = {};
 
-      if (firstName || lastName) {
-        userUpdateData.name = `${firstName ?? professor.firstName
-          } ${lastName ?? professor.lastName
-          }`;
-      }
+      if (firstName) userUpdateData.firstName = firstName;
+      if (lastName) userUpdateData.lastName = lastName;
 
       if (email) {
         userUpdateData.email = email;
@@ -175,12 +152,7 @@ export class ProfessorsService {
 
       return tx.professor.update({
         where: { id },
-        data: {
-          firstName,
-          lastName,
-          email,
-          department,
-        },
+        data: {},
         include: {
           user: {
             select: {

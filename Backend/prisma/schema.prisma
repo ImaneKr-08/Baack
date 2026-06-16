@@ -9,23 +9,24 @@ datasource db {
 
 model User {
   id        Int        @id @default(autoincrement())
-  name      String
+  firstName String     @default("")
+  lastName  String     @default("")
   email     String     @unique
   password  String
   role      Role       @default(PROFESSOR)
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
   professor Professor?
+  student   Student?
 }
 
 model Student {
   id                Int                @id @default(autoincrement())
-  firstName         String
-  lastName          String
-  email             String             @unique
-  department        String
   studentCode       String             @unique
+  group             String?
   braceletId        String?            @unique
+  userId            Int                @unique
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   heartRate         Int?
   stressScore       Float?
   stressLevel       StressLevel?
@@ -33,7 +34,6 @@ model Student {
   lastUpdate        DateTime?
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
-  password          String
   seatNumber        String?
   examSessions      ExamSession[]
   examStudents      ExamStudent[]
@@ -44,14 +44,10 @@ model Student {
 }
 
 model Professor {
-  id         Int    @id @default(autoincrement())
-  firstName  String
-  lastName   String
-  email      String @unique
-  department String
-  userId     Int    @unique
-  exams      Exam[]
-  user       User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id     Int    @id @default(autoincrement())
+  userId Int    @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  exams  Exam[]
 }
 
 model Classroom {
@@ -74,8 +70,8 @@ model Table {
   examStudents ExamStudent[]
   classroom    Classroom     @relation(fields: [classroomId], references: [id], onDelete: Cascade)
 
-  @@index([classroomId], map: "Table_classroomId_fkey")
   @@unique([classroomId, positionX, positionY])
+  @@index([classroomId], map: "Table_classroomId_fkey")
 }
 
 model Exam {
@@ -203,6 +199,7 @@ model ExamSession {
 enum Role {
   ADMIN
   PROFESSOR
+  STUDENT
 }
 
 enum ExamStatus {
