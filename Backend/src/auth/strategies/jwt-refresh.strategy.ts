@@ -4,12 +4,17 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { UsersService } from '../../users/users.service';
 
 @Injectable()
-export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh') {
+export class JwtRefreshStrategy extends PassportStrategy(
+  Strategy,
+  'jwt-refresh',
+) {
   constructor(private usersService: UsersService) {
     super({
       jwtFromRequest: ExtractJwt.fromBodyField('refreshToken'),
       ignoreExpiration: false,
-      secretOrKey: process.env.JWT_REFRESH_SECRET || 'proctor_insight_jwt_refresh_secret_key_2026_xyz',
+      secretOrKey:
+        process.env.JWT_REFRESH_SECRET ||
+        'proctor_insight_jwt_refresh_secret_key_2026_xyz',
     });
   }
 

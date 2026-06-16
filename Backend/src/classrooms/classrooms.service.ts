@@ -17,10 +17,7 @@ export class ClassroomsService {
     return this.prisma.classroom.findMany({
       include: {
         tables: {
-          orderBy: [
-            { positionY: 'asc' },
-            { positionX: 'asc' },
-          ],
+          orderBy: [{ positionY: 'asc' }, { positionX: 'asc' }],
         },
       },
       orderBy: {
@@ -45,26 +42,16 @@ export class ClassroomsService {
     return classroom;
   }
 
-  async update(
-    id: number,
-    updateClassroomDto: UpdateClassroomDto,
-  ) {
+  async update(id: number, updateClassroomDto: UpdateClassroomDto) {
     const classroom = await this.findOne(id);
 
-    const newRows =
-      updateClassroomDto.rows ??
-      classroom.rows;
+    const newRows = updateClassroomDto.rows ?? classroom.rows;
 
-    const newColumns =
-      updateClassroomDto.columns ??
-      classroom.columns;
+    const newColumns = updateClassroomDto.columns ?? classroom.columns;
 
-    const tableOutsideBounds =
-      classroom.tables.some(
-        table =>
-          table.positionX >= newColumns ||
-          table.positionY >= newRows,
-      );
+    const tableOutsideBounds = classroom.tables.some(
+      (table) => table.positionX >= newColumns || table.positionY >= newRows,
+    );
 
     if (tableOutsideBounds) {
       throw new Error(

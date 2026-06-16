@@ -6,7 +6,13 @@ export class DashboardService {
   constructor(private prisma: PrismaService) {}
 
   async getAdminStats() {
-    const [totalStudents, totalProfessors, totalClassrooms, totalExams, activeSessions] = await Promise.all([
+    const [
+      totalStudents,
+      totalProfessors,
+      totalClassrooms,
+      totalExams,
+      activeSessions,
+    ] = await Promise.all([
       this.prisma.student.count(),
       this.prisma.professor.count(),
       this.prisma.classroom.count(),
@@ -29,28 +35,31 @@ export class DashboardService {
     });
 
     if (!professor) {
-      throw new ForbiddenException('No professor profile linked to this user account');
+      throw new ForbiddenException(
+        'No professor profile linked to this user account',
+      );
     }
 
-    const [assignedExams, activeSessions, monitoredStudents] = await Promise.all([
-      this.prisma.exam.count({
-        where: { professorId: professor.id },
-      }),
-      this.prisma.monitoringSession.count({
-        where: {
-          active: true,
-          exam: { professorId: professor.id },
-        },
-      }),
-      this.prisma.examStudent.count({
-        where: {
-          exam: {
-            professorId: professor.id,
-            status: 'ONGOING',
+    const [assignedExams, activeSessions, monitoredStudents] =
+      await Promise.all([
+        this.prisma.exam.count({
+          where: { professorId: professor.id },
+        }),
+        this.prisma.monitoringSession.count({
+          where: {
+            active: true,
+            exam: { professorId: professor.id },
           },
-        },
-      }),
-    ]);
+        }),
+        this.prisma.examStudent.count({
+          where: {
+            exam: {
+              professorId: professor.id,
+              status: 'ONGOING',
+            },
+          },
+        }),
+      ]);
 
     return {
       assignedExams,

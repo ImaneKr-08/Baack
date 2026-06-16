@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateExamDto } from './dto/create-exam.dto';
 import { UpdateExamDto } from './dto/update-exam.dto';
@@ -82,8 +87,10 @@ export class ExamsService {
     await this.findOne(id);
 
     const data: any = { ...updateExamDto };
-    if (updateExamDto.examDate) data.examDate = new Date(updateExamDto.examDate);
-    if (updateExamDto.startTime) data.startTime = new Date(updateExamDto.startTime);
+    if (updateExamDto.examDate)
+      data.examDate = new Date(updateExamDto.examDate);
+    if (updateExamDto.startTime)
+      data.startTime = new Date(updateExamDto.startTime);
     if (updateExamDto.endTime) data.endTime = new Date(updateExamDto.endTime);
 
     return this.prisma.exam.update({
@@ -114,7 +121,10 @@ export class ExamsService {
     });
   }
 
-  async assignStudents(id: number, assignments: { studentId: number; tableId: number }[]) {
+  async assignStudents(
+    id: number,
+    assignments: { studentId: number; tableId: number }[],
+  ) {
     const exam = await this.findOne(id);
 
     for (const assignment of assignments) {
@@ -122,14 +132,18 @@ export class ExamsService {
         where: { id: assignment.studentId },
       });
       if (!student) {
-        throw new NotFoundException(`Student with ID ${assignment.studentId} not found`);
+        throw new NotFoundException(
+          `Student with ID ${assignment.studentId} not found`,
+        );
       }
 
       const table = await this.prisma.table.findUnique({
         where: { id: assignment.tableId },
       });
       if (!table) {
-        throw new NotFoundException(`Table with ID ${assignment.tableId} not found`);
+        throw new NotFoundException(
+          `Table with ID ${assignment.tableId} not found`,
+        );
       }
 
       if (table.classroomId !== exam.classroomId) {
@@ -163,7 +177,9 @@ export class ExamsService {
   async start(id: number) {
     const exam = await this.findOne(id);
     if (exam.status !== 'PENDING') {
-      throw new BadRequestException(`Cannot start an exam that is currently in status: ${exam.status}`);
+      throw new BadRequestException(
+        `Cannot start an exam that is currently in status: ${exam.status}`,
+      );
     }
 
     return this.prisma.$transaction(async (tx) => {
@@ -197,7 +213,9 @@ export class ExamsService {
   async end(id: number) {
     const exam = await this.findOne(id);
     if (exam.status !== 'ONGOING') {
-      throw new BadRequestException(`Cannot end an exam that is in status: ${exam.status}`);
+      throw new BadRequestException(
+        `Cannot end an exam that is in status: ${exam.status}`,
+      );
     }
 
     return this.prisma.$transaction(async (tx) => {

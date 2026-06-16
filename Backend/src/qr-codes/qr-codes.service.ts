@@ -51,7 +51,9 @@ export class QrCodesService {
     };
   }
 
-  async getQrCodeBuffer(tableId: number): Promise<{ buffer: Buffer; filename: string }> {
+  async getQrCodeBuffer(
+    tableId: number,
+  ): Promise<{ buffer: Buffer; filename: string }> {
     const table = await this.prisma.table.findUnique({
       where: { id: tableId },
     });

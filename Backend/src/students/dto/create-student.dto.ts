@@ -30,7 +30,7 @@ export class CreateStudentDto {
   @IsOptional()
   @IsString()
   braceletId?: string;
-  
+
   @ApiProperty()
   @IsNotEmpty()
   @IsString()

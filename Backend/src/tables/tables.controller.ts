@@ -10,7 +10,13 @@ import {
   UseGuards,
   ParseIntPipe,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiQuery,
+} from '@nestjs/swagger';
 import { TablesService } from './tables.service';
 import { CreateTableDto } from './dto/create-table.dto';
 import { UpdateTableDto } from './dto/update-table.dto';
@@ -39,7 +45,9 @@ export class TablesController {
   @ApiQuery({ name: 'classroomId', required: false, type: Number })
   @ApiResponse({ status: 200, description: 'Return list of tables' })
   findAll(@Query('classroomId') classroomId?: string) {
-    return this.tablesService.findAll(classroomId ? parseInt(classroomId, 10) : undefined);
+    return this.tablesService.findAll(
+      classroomId ? parseInt(classroomId, 10) : undefined,
+    );
   }
 
   @Get(':id')

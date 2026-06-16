@@ -8,7 +8,12 @@ import {
   ParseIntPipe,
 } from '@nestjs/common';
 import type { Response } from 'express';
-import { ApiBearerAuth, ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { QrCodesService } from './qr-codes.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
@@ -25,7 +30,10 @@ export class QrCodesController {
   @Roles(Role.ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Generate QR code for a table (Admin only)' })
-  @ApiResponse({ status: 200, description: 'QR code generated as base64 data URL' })
+  @ApiResponse({
+    status: 200,
+    description: 'QR code generated as base64 data URL',
+  })
   @ApiResponse({ status: 404, description: 'Table not found' })
   async generate(@Param('tableId', ParseIntPipe) tableId: number) {
     const dataUrl = await this.qrCodesService.generateQrCodeForTable(tableId);
@@ -36,13 +44,17 @@ export class QrCodesController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Generate QR codes for all tables in a classroom (Admin only)' })
-  @ApiResponse({ status: 200, description: 'QR codes batch generation complete' })
+  @ApiOperation({
+    summary: 'Generate QR codes for all tables in a classroom (Admin only)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'QR codes batch generation complete',
+  })
   @ApiResponse({ status: 404, description: 'Classroom not found' })
   async generateBatch(@Param('classroomId', ParseIntPipe) classroomId: number) {
     return this.qrCodesService.generateBatchForClassroom(classroomId);
   }
-  
 
   @Get('download/:tableId')
   @ApiOperation({ summary: 'Download QR code image for a table' })
@@ -52,7 +64,8 @@ export class QrCodesController {
     @Param('tableId', ParseIntPipe) tableId: number,
     @Res() res: any,
   ) {
-    const { buffer, filename } = await this.qrCodesService.getQrCodeBuffer(tableId);
+    const { buffer, filename } =
+      await this.qrCodesService.getQrCodeBuffer(tableId);
 
     res.setHeader('Content-Type', 'image/png');
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
@@ -65,8 +78,7 @@ export class QrCodesController {
     @Param('tableId', ParseIntPipe) tableId: number,
     @Res() res: Response,
   ) {
-    const { buffer } =
-      await this.qrCodesService.getQrCodeBuffer(tableId);
+    const { buffer } = await this.qrCodesService.getQrCodeBuffer(tableId);
 
     res.setHeader('Content-Type', 'image/png');
     res.send(buffer);

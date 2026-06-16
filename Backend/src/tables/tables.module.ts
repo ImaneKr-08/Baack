@@ -4,7 +4,7 @@ import { TablesController } from './tables.controller';
 import { QrCodesModule } from 'src/qr-codes/qr-codes.module';
 
 @Module({
-  imports:[QrCodesModule],
+  imports: [QrCodesModule],
   controllers: [TablesController],
   providers: [TablesService],
   exports: [TablesService],

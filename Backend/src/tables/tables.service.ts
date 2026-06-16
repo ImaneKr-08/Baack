@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateTableDto } from './dto/create-table.dto';
 import { UpdateTableDto } from './dto/update-table.dto';
@@ -6,7 +10,10 @@ import { QrCodesService } from '../qr-codes/qr-codes.service';
 
 @Injectable()
 export class TablesService {
-  constructor(private prisma: PrismaService, private qrCodesService: QrCodesService) {}
+  constructor(
+    private prisma: PrismaService,
+    private qrCodesService: QrCodesService,
+  ) {}
 
   async create(createTableDto: CreateTableDto) {
     const { classroomId, positionX, positionY } = createTableDto;
@@ -28,7 +35,9 @@ export class TablesService {
       where: { classroomId, positionX, positionY },
     });
     if (existingTable) {
-      throw new ConflictException(`A table already exists at position (${positionX}, ${positionY})`);
+      throw new ConflictException(
+        `A table already exists at position (${positionX}, ${positionY})`,
+      );
     }
 
     const table = await this.prisma.table.create({
@@ -82,7 +91,9 @@ export class TablesService {
         where: { id: classroomId },
       });
       if (!classroom) {
-        throw new NotFoundException(`Classroom with ID ${classroomId} not found`);
+        throw new NotFoundException(
+          `Classroom with ID ${classroomId} not found`,
+        );
       }
 
       if (positionX >= classroom.columns || positionY >= classroom.rows) {
@@ -95,7 +106,9 @@ export class TablesService {
         where: { classroomId, positionX, positionY, NOT: { id } },
       });
       if (existingTable) {
-        throw new ConflictException(`A table already exists at position (${positionX}, ${positionY})`);
+        throw new ConflictException(
+          `A table already exists at position (${positionX}, ${positionY})`,
+        );
       }
     }
 

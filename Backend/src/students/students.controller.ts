@@ -9,8 +9,14 @@ import {
   Query,
   UseGuards,
   ParseIntPipe,
+  Logger,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { StudentsService } from './students.service';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
@@ -25,6 +31,8 @@ import { Role } from '../common/enums/roles.enum';
 @UseGuards(JwtAuthGuard, RolesGuard)
 @ApiBearerAuth()
 export class StudentsController {
+  private readonly logger = new Logger(StudentsController.name);
+
   constructor(private readonly studentsService: StudentsService) {}
 
   @Post()
@@ -37,10 +45,11 @@ export class StudentsController {
 
   @Get()
   @ApiOperation({ summary: 'Get all students' })
-  @ApiResponse({ status: 200, description: 'Return paginated list of students' })
-  findAll(
-    @Query() paginationDto: PaginationDto,
-  ) {
+  @ApiResponse({
+    status: 200,
+    description: 'Return paginated list of students',
+  })
+  findAll(@Query() paginationDto: PaginationDto) {
     return this.studentsService.findAll(paginationDto);
   }
 
@@ -81,6 +90,9 @@ export class StudentsController {
     @Param('id', ParseIntPipe) id: number,
     @Body() body: { deviceId: string; seatNumber?: string },
   ) {
+    this.logger.debug(
+      `Received student pair request for studentId=${id}, deviceId=${body.deviceId}, seatNumber=${body.seatNumber ?? 'none'}`,
+    );
     return this.studentsService.pairDevice(id, body.deviceId, body.seatNumber);
   }
 
@@ -89,6 +101,7 @@ export class StudentsController {
   @ApiOperation({ summary: 'Unpair device from student' })
   @ApiResponse({ status: 200, description: 'Device successfully unpaired' })
   unpairDevice(@Param('id', ParseIntPipe) id: number) {
+    this.logger.debug(`Received student unpair request for studentId=${id}`);
     return this.studentsService.unpairDevice(id);
   }
 }

@@ -16,8 +16,9 @@ export class CreateProfessorDto {
   @IsEmail()
   email!: string;
 
-
-  @ApiProperty({ description: 'The password for their linked user login account' })
+  @ApiProperty({
+    description: 'The password for their linked user login account',
+  })
   @IsNotEmpty()
   @IsString()
   @MinLength(6)

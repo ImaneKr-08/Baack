@@ -3,8 +3,14 @@ import { PrismaClient } from '@prisma/client';
 import { PrismaMariaDb } from '@prisma/adapter-mariadb';
 
 @Injectable()
-export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
-  private static parsePositiveInt(value: string | null | undefined, fallback: number) {
+export class PrismaService
+  extends PrismaClient
+  implements OnModuleInit, OnModuleDestroy
+{
+  private static parsePositiveInt(
+    value: string | null | undefined,
+    fallback: number,
+  ) {
     if (!value) {
       return fallback;
     }
@@ -32,7 +38,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
       process.env.DATABASE_CONNECT_TIMEOUT,
       10000,
     );
-    let idleTimeout = PrismaService.parsePositiveInt(
+    const idleTimeout = PrismaService.parsePositiveInt(
       process.env.DATABASE_POOL_IDLE_TIMEOUT,
       60,
     );
@@ -61,13 +67,17 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
           connectTimeout,
         );
       } catch (err) {
-        console.error('Failed to parse DATABASE_URL, fallback to env vars:', err);
+        console.error(
+          'Failed to parse DATABASE_URL, fallback to env vars:',
+          err,
+        );
       }
     }
 
-    const sslConfig = (dbUrl?.includes('ssl-mode=REQUIRED') || dbUrl?.includes('ssl=true'))
-      ? { rejectUnauthorized: false }
-      : undefined;
+    const sslConfig =
+      dbUrl?.includes('ssl-mode=REQUIRED') || dbUrl?.includes('ssl=true')
+        ? { rejectUnauthorized: false }
+        : undefined;
 
     const config = {
       host,

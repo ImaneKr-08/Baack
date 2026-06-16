@@ -9,7 +9,7 @@ export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
-  ) { }
+  ) {}
 
   async login(loginDto: LoginDto) {
     const user = await this.usersService.findByEmail(loginDto.email);
@@ -18,10 +18,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    const isMatch = await bcrypt.compare(
-      loginDto.password,
-      user.password,
-    );
+    const isMatch = await bcrypt.compare(loginDto.password, user.password);
 
     if (!isMatch) {
       throw new UnauthorizedException('Invalid email or password');
@@ -45,7 +42,7 @@ export class AuthService {
     const name = `${user.firstName} ${user.lastName}`;
     const email = user.email;
     const role = user.role;
-    
+
     const payload = {
       sub: userId,
       email,
@@ -54,8 +51,7 @@ export class AuthService {
 
     const accessToken = this.jwtService.sign(payload, {
       secret:
-        process.env.JWT_SECRET ||
-        'proctor_insight_jwt_secret_key_2026_xyz',
+        process.env.JWT_SECRET || 'proctor_insight_jwt_secret_key_2026_xyz',
       expiresIn: '60m',
     });
 
@@ -70,7 +66,11 @@ export class AuthService {
       accessToken,
       refreshToken,
       user: {
-        id: user.student ? user.student.id : (user.professor ? user.professor.id : userId),
+        id: user.student
+          ? user.student.id
+          : user.professor
+            ? user.professor.id
+            : userId,
         studentCode: user.student ? user.student.studentCode : undefined,
         name,
         email,

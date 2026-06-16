@@ -13,16 +13,11 @@ import { MailService } from '../mail/mail.service';
 export class ProfessorsService {
   constructor(
     private prisma: PrismaService,
-   private mailService: MailService,
-  ) { }
+    private mailService: MailService,
+  ) {}
 
   async create(createProfessorDto: CreateProfessorDto) {
-    const {
-      firstName,
-      lastName,
-      email,
-      password,
-    } = createProfessorDto;
+    const { firstName, lastName, email, password } = createProfessorDto;
 
     const existingUser = await this.prisma.user.findUnique({
       where: { email },
@@ -61,7 +56,6 @@ export class ProfessorsService {
       });
     });
 
-    
     try {
       await this.mailService.sendProfessorCredentials(
         email,
@@ -93,26 +87,16 @@ export class ProfessorsService {
     });
 
     if (!professor) {
-      throw new NotFoundException(
-        `Professor with ID ${id} not found`,
-      );
+      throw new NotFoundException(`Professor with ID ${id} not found`);
     }
 
     return professor;
   }
 
-  async update(
-    id: number,
-    updateProfessorDto: UpdateProfessorDto,
-  ) {
+  async update(id: number, updateProfessorDto: UpdateProfessorDto) {
     const professor = await this.findOne(id);
 
-    const {
-      firstName,
-      lastName,
-      email,
-      password,
-    } = updateProfessorDto;
+    const { firstName, lastName, email, password } = updateProfessorDto;
 
     if (email) {
       const existingUser = await this.prisma.user.findFirst({
@@ -135,10 +119,7 @@ export class ProfessorsService {
       }
 
       if (password) {
-        userUpdateData.password = await bcrypt.hash(
-          password,
-          10,
-        );
+        userUpdateData.password = await bcrypt.hash(password, 10);
       }
 
       if (Object.keys(userUpdateData).length > 0) {

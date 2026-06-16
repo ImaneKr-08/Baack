@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+  Logger,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
@@ -8,20 +13,27 @@ import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class StudentsService {
+  private readonly logger = new Logger(StudentsService.name);
+
   constructor(
     private prisma: PrismaService,
     private mailService: MailService,
   ) {}
 
   async create(createStudentDto: CreateStudentDto) {
+    this.logger.debug(
+      `Creating student studentCode=${createStudentDto.studentCode}, braceletId=${createStudentDto.braceletId ?? 'none'}`,
+    );
+
     const emailExists = await this.prisma.user.findUnique({
       where: { email: createStudentDto.email },
     });
 
     if (emailExists) {
-      throw new ConflictException(
-        'Email already registered for a student',
+      this.logger.warn(
+        `Create student blocked: email already registered for studentCode=${createStudentDto.studentCode}`,
       );
+      throw new ConflictException('Email already registered for a student');
     }
 
     const codeExists = await this.prisma.student.findUnique({
@@ -29,9 +41,10 @@ export class StudentsService {
     });
 
     if (codeExists) {
-      throw new ConflictException(
-        'Student code already registered',
+      this.logger.warn(
+        `Create student blocked: studentCode already registered (${createStudentDto.studentCode})`,
       );
+      throw new ConflictException('Student code already registered');
     }
 
     if (createStudentDto.braceletId) {
@@ -40,16 +53,16 @@ export class StudentsService {
       });
 
       if (braceletExists) {
+        this.logger.warn(
+          `Create student blocked: braceletId=${createStudentDto.braceletId} already assigned to studentId=${braceletExists.id}`,
+        );
         throw new ConflictException(
           'Bracelet already assigned to another student',
         );
       }
     }
 
-    const hashedPassword = await bcrypt.hash(
-      createStudentDto.password,
-      10,
-    );
+    const hashedPassword = await bcrypt.hash(createStudentDto.password, 10);
 
     const studentRecord = await this.prisma.user.create({
       data: {
@@ -63,13 +76,17 @@ export class StudentsService {
             studentCode: createStudentDto.studentCode,
             group: createStudentDto.group,
             braceletId: createStudentDto.braceletId,
-          }
-        }
+          },
+        },
       },
       include: {
         student: true,
-      }
+      },
     });
+
+    this.logger.debug(
+      `Created student userId=${studentRecord.id}, studentId=${studentRecord.student?.id}, braceletId=${studentRecord.student?.braceletId ?? 'none'}`,
+    );
 
     try {
       await this.mailService.sendStudentCredentials(
@@ -142,6 +159,10 @@ export class StudentsService {
   }
 
   async update(id: number, updateStudentDto: UpdateStudentDto) {
+    this.logger.debug(
+      `Updating studentId=${id}, incomingBraceletId=${updateStudentDto.braceletId ?? 'unchanged'}`,
+    );
+
     const student = await this.findOne(id);
 
     if (updateStudentDto.email) {
@@ -149,7 +170,9 @@ export class StudentsService {
         where: { email: updateStudentDto.email, NOT: { id: student.userId } },
       });
       if (emailExists) {
-        throw new ConflictException('Email already registered for another user');
+        throw new ConflictException(
+          'Email already registered for another user',
+        );
       }
     }
 
@@ -158,7 +181,12 @@ export class StudentsService {
         where: { studentCode: updateStudentDto.studentCode, NOT: { id } },
       });
       if (codeExists) {
-        throw new ConflictException('Student code already registered for another student');
+        this.logger.warn(
+          `Update student blocked: studentCode=${updateStudentDto.studentCode} already belongs to studentId=${codeExists.id}`,
+        );
+        throw new ConflictException(
+          'Student code already registered for another student',
+        );
       }
     }
 
@@ -167,22 +195,31 @@ export class StudentsService {
         where: { braceletId: updateStudentDto.braceletId, NOT: { id } },
       });
       if (braceletExists) {
-        throw new ConflictException('Bracelet already assigned to another student');
+        this.logger.warn(
+          `Update student blocked: braceletId=${updateStudentDto.braceletId} already belongs to studentId=${braceletExists.id}`,
+        );
+        throw new ConflictException(
+          'Bracelet already assigned to another student',
+        );
       }
     }
 
-    if (updateStudentDto.email || updateStudentDto.firstName || updateStudentDto.lastName) {
+    if (
+      updateStudentDto.email ||
+      updateStudentDto.firstName ||
+      updateStudentDto.lastName
+    ) {
       await this.prisma.user.update({
         where: { id: student.userId },
         data: {
           email: updateStudentDto.email,
           firstName: updateStudentDto.firstName,
           lastName: updateStudentDto.lastName,
-        }
+        },
       });
     }
 
-    return this.prisma.student.update({
+    const updated = await this.prisma.student.update({
       where: { id },
       data: {
         studentCode: updateStudentDto.studentCode,
@@ -191,6 +228,12 @@ export class StudentsService {
       },
       include: { user: true },
     });
+
+    this.logger.debug(
+      `Updated studentId=${id}, braceletId=${updated.braceletId ?? 'none'}, connected=${updated.connected}`,
+    );
+
+    return updated;
   }
 
   async remove(id: number) {
@@ -201,27 +244,47 @@ export class StudentsService {
   }
 
   async pairDevice(id: number, deviceId: string, seatNumber?: string) {
+    this.logger.debug(
+      `Pair-device started from Students API: studentId=${id}, deviceId=${deviceId}, seatNumber=${seatNumber ?? 'none'}`,
+    );
+
     const student = await this.prisma.student.findUnique({
       where: { id },
     });
 
     if (!student) {
+      this.logger.warn(
+        `Pair-device failed: studentId=${id} not found for deviceId=${deviceId}`,
+      );
       throw new NotFoundException(`Student with ID ${id} not found`);
     }
+
+    this.logger.debug(
+      `Pair-device target current state: studentId=${id}, oldBraceletId=${student.braceletId ?? 'none'}, connected=${student.connected}`,
+    );
 
     if (deviceId) {
       const existing = await this.prisma.student.findUnique({
         where: { braceletId: deviceId },
       });
+      this.logger.debug(
+        `Existing bracelet assignment lookup for deviceId=${deviceId}: ${existing ? `studentId=${existing.id}` : 'none found'}`,
+      );
       if (existing && existing.id !== id) {
+        this.logger.warn(
+          `DeviceId=${deviceId} is assigned to studentId=${existing.id}; unpairing before assigning to studentId=${id}`,
+        );
         await this.prisma.student.update({
           where: { id: existing.id },
           data: { braceletId: null, connected: false },
         });
+        this.logger.debug(
+          `Disconnected previous studentId=${existing.id} from deviceId=${deviceId}`,
+        );
       }
     }
 
-    return this.prisma.student.update({
+    const updated = await this.prisma.student.update({
       where: { id },
       data: {
         braceletId: deviceId,
@@ -229,18 +292,31 @@ export class StudentsService {
         connected: true,
       },
     });
+
+    this.logger.debug(
+      `Pair-device completed: studentId=${id}, braceletId=${updated.braceletId ?? 'none'}, seatNumber=${updated.seatNumber ?? 'none'}, connected=${updated.connected}`,
+    );
+
+    return updated;
   }
 
   async unpairDevice(id: number) {
+    this.logger.debug(`Unpair-device started for studentId=${id}`);
+
     const student = await this.prisma.student.findUnique({
       where: { id },
     });
 
     if (!student) {
+      this.logger.warn(`Unpair-device failed: studentId=${id} not found`);
       throw new NotFoundException(`Student with ID ${id} not found`);
     }
 
-    return this.prisma.student.update({
+    this.logger.debug(
+      `Unpair-device target current state: studentId=${id}, braceletId=${student.braceletId ?? 'none'}, connected=${student.connected}`,
+    );
+
+    const updated = await this.prisma.student.update({
       where: { id },
       data: {
         braceletId: null,
@@ -248,5 +324,11 @@ export class StudentsService {
         connected: false,
       },
     });
+
+    this.logger.debug(
+      `Unpair-device completed: studentId=${id}, braceletId=${updated.braceletId ?? 'none'}, connected=${updated.connected}`,
+    );
+
+    return updated;
   }
 }

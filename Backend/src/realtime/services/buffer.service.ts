@@ -1,28 +1,28 @@
-import { Injectable } from "@nestjs/common";
-import { SensorFrame } from "../interfaces/sensor-frame.interface";
+import { Injectable } from '@nestjs/common';
+import { SensorFrame } from '../interfaces/sensor-frame.interface';
 
 @Injectable()
 export class BufferService {
-    private buffer: Map<string, SensorFrame[]> = new Map();
+  private buffer: Map<string, SensorFrame[]> = new Map();
 
-    addFrame(userId: string, frame: SensorFrame){
-        if (!this.buffer.has(userId)) {
-            this.buffer.set(userId, []);
-        }
-        
-        const userBuffer = this.buffer.get(userId);
-        userBuffer?.push(frame);
-        // Keep only the last 100 frames
-        if (userBuffer && userBuffer.length > 60) {
-                userBuffer.shift();
-        }
+  addFrame(userId: string, frame: SensorFrame) {
+    if (!this.buffer.has(userId)) {
+      this.buffer.set(userId, []);
     }
 
-    getBuffer(userId: string): SensorFrame[] {
-        return this.buffer.get(userId) || [];
+    const userBuffer = this.buffer.get(userId);
+    userBuffer?.push(frame);
+    // Keep only the last 100 frames
+    if (userBuffer && userBuffer.length > 60) {
+      userBuffer.shift();
     }
-    
-    clearBuffer(userId: string): void {
-        this.buffer.delete(userId);
-    }
+  }
+
+  getBuffer(userId: string): SensorFrame[] {
+    return this.buffer.get(userId) || [];
+  }
+
+  clearBuffer(userId: string): void {
+    this.buffer.delete(userId);
+  }
 }

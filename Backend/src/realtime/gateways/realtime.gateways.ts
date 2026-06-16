@@ -4,6 +4,7 @@ import {
   OnGatewayConnection,
   OnGatewayDisconnect,
 } from '@nestjs/websockets';
+import { Logger } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 
 @WebSocketGateway({
@@ -12,16 +13,22 @@ import { Server, Socket } from 'socket.io';
     origin: '*',
   },
 })
-export class RealtimeGateway implements OnGatewayConnection, OnGatewayDisconnect {
+export class RealtimeGateway
+  implements OnGatewayConnection, OnGatewayDisconnect
+{
+  private readonly logger = new Logger(RealtimeGateway.name);
+
   @WebSocketServer()
   server!: Server;
 
   handleConnection(client: Socket) {
-    console.log(`Client connected to monitoring namespace: ${client.id}`);
+    this.logger.debug(`Client connected to monitoring namespace: ${client.id}`);
   }
 
   handleDisconnect(client: Socket) {
-    console.log(`Client disconnected from monitoring namespace: ${client.id}`);
+    this.logger.debug(
+      `Client disconnected from monitoring namespace: ${client.id}`,
+    );
   }
 
   sendTelemetryUpdate(data: {
@@ -31,27 +38,33 @@ export class RealtimeGateway implements OnGatewayConnection, OnGatewayDisconnect
     stressScore: number;
     stressLevel: string;
   }) {
-    console.log('Broadcasting telemetryUpdated:', data);
+    this.logger.debug(`Broadcasting telemetryUpdated: ${JSON.stringify(data)}`);
     this.server.emit('telemetryUpdated', data);
   }
 
   sendStudentConnected(data: { studentId: number; braceletId: string }) {
-    console.log('Broadcasting studentConnected:', data);
+    this.logger.debug(`Broadcasting studentConnected: ${JSON.stringify(data)}`);
     this.server.emit('studentConnected', data);
   }
 
   sendStudentDisconnected(data: { studentId: number }) {
-    console.log('Broadcasting studentDisconnected:', data);
+    this.logger.debug(
+      `Broadcasting studentDisconnected: ${JSON.stringify(data)}`,
+    );
     this.server.emit('studentDisconnected', data);
   }
 
-  sendSessionStarted(data: { sessionId: number; examId: number; title: string }) {
-    console.log('Broadcasting sessionStarted:', data);
+  sendSessionStarted(data: {
+    sessionId: number;
+    examId: number;
+    title: string;
+  }) {
+    this.logger.debug(`Broadcasting sessionStarted: ${JSON.stringify(data)}`);
     this.server.emit('sessionStarted', data);
   }
 
   sendSessionEnded(data: { sessionId: number; examId: number }) {
-    console.log('Broadcasting sessionEnded:', data);
+    this.logger.debug(`Broadcasting sessionEnded: ${JSON.stringify(data)}`);
     this.server.emit('sessionEnded', data);
   }
 }
