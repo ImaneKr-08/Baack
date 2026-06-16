@@ -10,6 +10,7 @@ import { UpdateStudentDto } from './dto/update-student.dto';
 import { PaginationDto } from '../common/dto/pagination.dto';
 import * as bcrypt from 'bcrypt';
 import { MailService } from '../mail/mail.service';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class StudentsService {
@@ -106,7 +107,7 @@ export class StudentsService {
     const limit = paginationDto.limit ?? 100;
     const skip = (page - 1) * limit;
 
-    const where: any = {};
+    const where: Prisma.StudentWhereInput = {};
 
     const search = paginationDto.search;
     if (search) {
