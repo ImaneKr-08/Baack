@@ -72,4 +72,23 @@ export class StudentsController {
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.studentsService.remove(id);
   }
+
+  @Patch(':id/pair')
+  @Roles(Role.ADMIN, Role.PROFESSOR, Role.STUDENT)
+  @ApiOperation({ summary: 'Pair device to student' })
+  @ApiResponse({ status: 200, description: 'Device successfully paired' })
+  pairDevice(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: { deviceId: string; seatNumber?: string },
+  ) {
+    return this.studentsService.pairDevice(id, body.deviceId, body.seatNumber);
+  }
+
+  @Patch(':id/unpair')
+  @Roles(Role.ADMIN, Role.PROFESSOR, Role.STUDENT)
+  @ApiOperation({ summary: 'Unpair device from student' })
+  @ApiResponse({ status: 200, description: 'Device successfully unpaired' })
+  unpairDevice(@Param('id', ParseIntPipe) id: number) {
+    return this.studentsService.unpairDevice(id);
+  }
 }

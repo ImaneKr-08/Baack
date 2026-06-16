@@ -19,7 +19,9 @@ export class MlService {
     });
 
     if (!student) {
-      throw new NotFoundException(`No student assigned to bracelet ID ${esp32_id}`);
+      throw new NotFoundException(
+        `No student assigned to bracelet ID ${esp32_id}`,
+      );
     }
 
     let mappedLevel: StressLevel = StressLevel.BASELINE;
@@ -94,5 +96,53 @@ export class MlService {
         inActiveSession: !!activeSession,
       },
     };
+  }
+
+  async pairDevice(deviceId: string, userId: number | string) {
+    let student;
+    
+    if (typeof userId === 'number' || (typeof userId === 'string' && !isNaN(parseInt(userId, 10)) && userId.match(/^[0-9]+$/))) {
+      const id = typeof userId === 'string' ? parseInt(userId, 10) : userId;
+      student = await this.prisma.student.findUnique({
+        where: { id },
+      });
+    }
+
+    if (!student && typeof userId === 'string') {
+      student = await this.prisma.student.findUnique({
+        where: { studentCode: userId },
+      });
+    }
+
+    if (!student) {
+      throw new NotFoundException(`Student ${userId} not found`);
+    }
+
+    const studentId = student.id;
+
+    // Unpair if the device is already assigned to another student
+    const existing = await this.prisma.student.findUnique({
+      where: { braceletId: deviceId },
+    });
+
+    if (existing && existing.id !== studentId) {
+      await this.prisma.student.update({
+        where: { id: existing.id },
+        data: { braceletId: null, connected: false },
+      });
+      this.realtimeGateway.sendStudentDisconnected({ studentId: existing.id });
+    }
+
+    await this.prisma.student.update({
+      where: { id: studentId },
+      data: { braceletId: deviceId, connected: true },
+    });
+
+    this.realtimeGateway.sendStudentConnected({
+      studentId,
+      braceletId: deviceId,
+    });
+
+    return { success: true, message: 'Device paired successfully' };
   }
 }

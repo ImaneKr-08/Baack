@@ -199,4 +199,54 @@ export class StudentsService {
       where: { id },
     });
   }
+
+  async pairDevice(id: number, deviceId: string, seatNumber?: string) {
+    const student = await this.prisma.student.findUnique({
+      where: { id },
+    });
+
+    if (!student) {
+      throw new NotFoundException(`Student with ID ${id} not found`);
+    }
+
+    if (deviceId) {
+      const existing = await this.prisma.student.findUnique({
+        where: { braceletId: deviceId },
+      });
+      if (existing && existing.id !== id) {
+        await this.prisma.student.update({
+          where: { id: existing.id },
+          data: { braceletId: null, connected: false },
+        });
+      }
+    }
+
+    return this.prisma.student.update({
+      where: { id },
+      data: {
+        braceletId: deviceId,
+        seatNumber: seatNumber,
+        connected: true,
+      },
+    });
+  }
+
+  async unpairDevice(id: number) {
+    const student = await this.prisma.student.findUnique({
+      where: { id },
+    });
+
+    if (!student) {
+      throw new NotFoundException(`Student with ID ${id} not found`);
+    }
+
+    return this.prisma.student.update({
+      where: { id },
+      data: {
+        braceletId: null,
+        seatNumber: null,
+        connected: false,
+      },
+    });
+  }
 }
