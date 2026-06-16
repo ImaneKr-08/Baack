@@ -88,10 +88,10 @@ export class StudentsController {
   @ApiResponse({ status: 200, description: 'Device successfully paired' })
   pairDevice(
     @Param('id', ParseIntPipe) id: number,
-    @Body() body: { deviceId: string; seatNumber?: string },
+    @Body() body: { deviceId: string; seatNumber?: string; studentId?: string },
   ) {
     this.logger.debug(
-      `Received student pair request for studentId=${id}, deviceId=${body.deviceId}, seatNumber=${body.seatNumber ?? 'none'}`,
+      `Received student pair request for studentId=${id}, deviceId=${body.deviceId}, seatNumber=${body.seatNumber ?? 'none'}, studentCode=${body.studentId ?? 'none'}`,
     );
     return this.studentsService.pairDevice(id, body.deviceId, body.seatNumber);
   }
@@ -100,8 +100,13 @@ export class StudentsController {
   @Roles(Role.ADMIN, Role.PROFESSOR, Role.STUDENT)
   @ApiOperation({ summary: 'Unpair device from student' })
   @ApiResponse({ status: 200, description: 'Device successfully unpaired' })
-  unpairDevice(@Param('id', ParseIntPipe) id: number) {
-    this.logger.debug(`Received student unpair request for studentId=${id}`);
+  unpairDevice(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body?: { studentId?: string },
+  ) {
+    this.logger.debug(
+      `Received student unpair request for DB id=${id}, studentCode=${body?.studentId ?? 'none'}`,
+    );
     return this.studentsService.unpairDevice(id);
   }
 }

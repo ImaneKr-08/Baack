@@ -71,6 +71,7 @@ export class AuthService {
           : user.professor
             ? user.professor.id
             : userId,
+        studentId: user.student ? user.student.studentCode : undefined,
         studentCode: user.student ? user.student.studentCode : undefined,
         name,
         email,
