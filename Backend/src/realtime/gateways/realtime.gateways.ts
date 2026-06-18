@@ -57,7 +57,7 @@ export class RealtimeGateway
   sendSessionStarted(data: {
     sessionId: number;
     examId: number;
-    title: string;
+    module: string;
   }) {
     this.logger.debug(`Broadcasting sessionStarted: ${JSON.stringify(data)}`);
     this.server.emit('sessionStarted', data);

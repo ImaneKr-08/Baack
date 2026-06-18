@@ -11,7 +11,7 @@ if (!dbUrl) {
 }
 
 try {
-    const dir = 'prisma/migrations/20260616132000_update_models';
+    const dir = 'prisma/migrations/20260616183000_remove_exam_title';
     if (!fs.existsSync(dir)){
         fs.mkdirSync(dir, { recursive: true });
     }

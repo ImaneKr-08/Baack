@@ -35,7 +35,6 @@ export class ExamsService {
 
     return this.prisma.exam.create({
       data: {
-        title: createExamDto.title,
         module: createExamDto.module,
         examDate: new Date(createExamDto.examDate),
         startTime: new Date(createExamDto.startTime),
@@ -199,7 +198,7 @@ export class ExamsService {
       this.realtimeGateway.sendSessionStarted({
         sessionId: session.id,
         examId: id,
-        title: exam.title,
+        module: exam.module,
       });
 
       return {

@@ -76,7 +76,6 @@ model Table {
 
 model Exam {
   id                 Int                 @id @default(autoincrement())
-  title              String
   module             String
   examDate           DateTime
   startTime          DateTime
