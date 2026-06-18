@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, ValidateNested, IsInt } from 'class-validator';
+import { IsArray, ValidateNested, IsInt, IsOptional, IsString } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class StudentAssignmentDto {
@@ -10,6 +10,11 @@ export class StudentAssignmentDto {
   @ApiProperty()
   @IsInt()
   tableId!: number;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  braceletId?: string;
 }
 
 export class AssignStudentsDto {

@@ -173,6 +173,110 @@ export class ExamsService {
     });
   }
 
+  async checkInStudent(
+    id: number,
+    assignment: { studentId: number; tableId: number; braceletId?: string },
+  ) {
+    const exam = await this.findOne(id);
+
+    const student = await this.prisma.student.findUnique({
+      where: { id: assignment.studentId },
+    });
+    if (!student) {
+      throw new NotFoundException(
+        `Student with ID ${assignment.studentId} not found`,
+      );
+    }
+
+    const table = await this.prisma.table.findUnique({
+      where: { id: assignment.tableId },
+    });
+    if (!table) {
+      throw new NotFoundException(
+        `Table with ID ${assignment.tableId} not found`,
+      );
+    }
+
+    if (table.classroomId !== exam.classroomId) {
+      throw new BadRequestException(
+        `Table ${table.id} is in Classroom ${table.classroomId}, but exam is in Classroom ${exam.classroomId}`,
+      );
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      const occupiedTable = await tx.examStudent.findUnique({
+        where: {
+          examId_tableId: {
+            examId: id,
+            tableId: assignment.tableId,
+          },
+        },
+      });
+
+      if (occupiedTable && occupiedTable.studentId !== assignment.studentId) {
+        throw new ConflictException(
+          `Table ${assignment.tableId} is already assigned in exam ${id}`,
+        );
+      }
+
+      await tx.examStudent.deleteMany({
+        where: {
+          examId: id,
+          studentId: assignment.studentId,
+        },
+      });
+
+      if (assignment.braceletId) {
+        const existingBraceletOwner = await tx.student.findUnique({
+          where: { braceletId: assignment.braceletId },
+        });
+
+        if (
+          existingBraceletOwner &&
+          existingBraceletOwner.id !== assignment.studentId
+        ) {
+          await tx.student.update({
+            where: { id: existingBraceletOwner.id },
+            data: {
+              braceletId: null,
+              connected: false,
+            },
+          });
+        }
+
+        await tx.student.update({
+          where: { id: assignment.studentId },
+          data: {
+            braceletId: assignment.braceletId,
+            seatNumber: `Table ${assignment.tableId}`,
+            connected: true,
+          },
+        });
+      } else {
+        await tx.student.update({
+          where: { id: assignment.studentId },
+          data: {
+            seatNumber: `Table ${assignment.tableId}`,
+            connected: true,
+          },
+        });
+      }
+
+      return tx.examStudent.create({
+        data: {
+          examId: id,
+          studentId: assignment.studentId,
+          tableId: assignment.tableId,
+        },
+        include: {
+          exam: true,
+          student: true,
+          table: true,
+        },
+      });
+    });
+  }
+
   async start(id: number) {
     const exam = await this.findOne(id);
     if (exam.status !== 'PENDING') {
@@ -248,12 +352,18 @@ export class ExamsService {
             where: { id: { in: studentIds } },
             data: {
               connected: false,
+              braceletId: null,
+              seatNumber: null,
               heartRate: null,
               stressScore: null,
               stressLevel: null,
             },
           });
         }
+
+        await tx.examStudent.deleteMany({
+          where: { examId: id },
+        });
 
         this.realtimeGateway.sendSessionEnded({
           sessionId: endedSession.id,

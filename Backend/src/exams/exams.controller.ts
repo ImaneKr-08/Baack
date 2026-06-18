@@ -21,7 +21,10 @@ import { ExamsService } from './exams.service';
 import { CreateExamDto } from './dto/create-exam.dto';
 import { UpdateExamDto } from './dto/update-exam.dto';
 import { AssignProfessorDto } from './dto/assign-professor.dto';
-import { AssignStudentsDto } from './dto/assign-students.dto';
+import {
+  AssignStudentsDto,
+  StudentAssignmentDto,
+} from './dto/assign-students.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
@@ -108,6 +111,20 @@ export class ExamsController {
     @Body() dto: AssignStudentsDto,
   ) {
     return this.examsService.assignStudents(id, dto.assignments);
+  }
+
+  @Post(':id/check-in')
+  @Roles(Role.ADMIN, Role.PROFESSOR, Role.STUDENT)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Check a student into one table for this exam',
+  })
+  @ApiResponse({ status: 200, description: 'Student table check-in saved' })
+  checkInStudent(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: StudentAssignmentDto,
+  ) {
+    return this.examsService.checkInStudent(id, dto);
   }
 
   @Post(':id/start')
