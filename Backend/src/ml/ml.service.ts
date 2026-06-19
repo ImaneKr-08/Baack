@@ -14,7 +14,13 @@ export class MlService {
   ) {}
 
   async processStressData(dto: StressDataDto) {
-    const { esp32_id, stress_level, confidence, normalized } = dto;
+    const {
+  esp32_id,
+  stress_level,
+  confidence,
+  raw,
+  normalized,
+} = dto;
 
     this.logger.debug(
       `Processing stress data for braceletId=${esp32_id}, rawStressLevel=${stress_level}, confidence=${confidence}, hrNorm=${normalized?.hr_norm}`,
@@ -45,11 +51,14 @@ export class MlService {
       mappedLevel = StressLevel.MILD_STRESS;
     }
 
-    const heartRate = Math.round(normalized.hr_norm * 50 + 60);
+const heartRate = Math.round(raw.hr);
 
+const hrv = Math.round(raw.hrv);
+
+const gsr = raw.gsr;
     this.logger.debug(
-      `Mapped stress data for studentId=${student.id}: mappedLevel=${mappedLevel}, computedHeartRate=${heartRate}`,
-    );
+  `Mapped stress data for studentId=${student.id}: level=${mappedLevel}, hr=${heartRate}, hrv=${hrv}, gsr=${gsr}`,
+);
 
     await this.prisma.student.update({
       where: { id: student.id },
