@@ -16,10 +16,10 @@ export class CreateStudentDto {
   @IsEmail()
   email!: string;
 
-  @ApiProperty()
-  @IsNotEmpty()
+  @ApiPropertyOptional()
+  @IsOptional()
   @IsString()
-  department!: string;
+  group?: string;
 
   @ApiProperty()
   @IsNotEmpty()
@@ -30,7 +30,7 @@ export class CreateStudentDto {
   @IsOptional()
   @IsString()
   braceletId?: string;
-  
+
   @ApiProperty()
   @IsNotEmpty()
   @IsString()

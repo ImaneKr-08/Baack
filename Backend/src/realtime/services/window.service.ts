@@ -7,27 +7,17 @@ export class WindowService {
 
   private readonly STEP_SIZE = 5;
 
-  private predictionCounters: Map<string, number> =
-    new Map();
+  private predictionCounters: Map<string, number> = new Map();
 
-  createWindow(
-    userId: string,
-    buffer: SensorFrame[],
-  ): SensorFrame[] | null {
-
+  createWindow(userId: string, buffer: SensorFrame[]): SensorFrame[] | null {
     if (buffer.length < this.WINDOW_SIZE) {
       return null;
     }
 
-    const currentCount =
-      this.predictionCounters.get(userId) || 0;
+    const currentCount = this.predictionCounters.get(userId) || 0;
 
     if (currentCount < this.STEP_SIZE - 1) {
-
-      this.predictionCounters.set(
-        userId,
-        currentCount + 1,
-      );
+      this.predictionCounters.set(userId, currentCount + 1);
 
       return null;
     }

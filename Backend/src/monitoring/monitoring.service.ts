@@ -1,4 +1,10 @@
-import { Injectable, NotFoundException, BadRequestException, Inject, forwardRef } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  Inject,
+  forwardRef,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { ExamsService } from '../exams/exams.service';
 
@@ -19,7 +25,9 @@ export class MonitoringService {
       where: { id: sessionId },
     });
     if (!session) {
-      throw new NotFoundException(`Monitoring session with ID ${sessionId} not found`);
+      throw new NotFoundException(
+        `Monitoring session with ID ${sessionId} not found`,
+      );
     }
     if (!session.active) {
       throw new BadRequestException('Monitoring session is already inactive');
@@ -53,7 +61,7 @@ export class MonitoringService {
     const examStudents = await this.prisma.examStudent.findMany({
       where: { examId: session.examId },
       include: {
-        student: true,
+        student: { include: { user: true } },
         table: true,
       },
     });
@@ -62,10 +70,9 @@ export class MonitoringService {
       assignmentId: es.id,
       studentId: es.studentId,
       studentCode: es.student.studentCode,
-      firstName: es.student.firstName,
-      lastName: es.student.lastName,
-      email: es.student.email,
-      department: es.student.department,
+      firstName: es.student.user.firstName,
+      lastName: es.student.user.lastName,
+      email: es.student.user.email,
       braceletId: es.student.braceletId,
       heartRate: es.student.heartRate,
       stressScore: es.student.stressScore,
@@ -83,19 +90,24 @@ export class MonitoringService {
   async getSessionHistory(sessionId: number) {
     await this.getSession(sessionId);
 
-    return this.prisma.telemetryHistory.findMany({
+    const history = await this.prisma.telemetryHistory.findMany({
       where: { sessionId },
       include: {
         student: {
-          select: {
-            firstName: true,
-            lastName: true,
-            studentCode: true,
-          },
+          include: { user: true },
         },
       },
       orderBy: { timestamp: 'desc' },
     });
+
+    return history.map((h) => ({
+      ...h,
+      student: {
+        firstName: h.student.user.firstName,
+        lastName: h.student.user.lastName,
+        studentCode: h.student.studentCode,
+      },
+    }));
   }
 
   async getSessionStatistics(sessionId: number) {
@@ -133,7 +145,10 @@ export class MonitoringService {
     let minStress = 999;
 
     const stressDist = { BASELINE: 0, MILD_STRESS: 0, HIGH_STRESS: 0 };
-    const studentData: Record<number, { hrSum: number; stressSum: number; count: number; studentId: number }> = {};
+    const studentData: Record<
+      number,
+      { hrSum: number; stressSum: number; count: number; studentId: number }
+    > = {};
 
     telemetry.forEach((t) => {
       totalHr += t.heartRate;
@@ -145,11 +160,16 @@ export class MonitoringService {
       if (t.stressScore < minStress) minStress = t.stressScore;
 
       if (t.stressLevel in stressDist) {
-        stressDist[t.stressLevel as keyof typeof stressDist]++;
+        stressDist[t.stressLevel]++;
       }
 
       if (!studentData[t.studentId]) {
-        studentData[t.studentId] = { hrSum: 0, stressSum: 0, count: 0, studentId: t.studentId };
+        studentData[t.studentId] = {
+          hrSum: 0,
+          stressSum: 0,
+          count: 0,
+          studentId: t.studentId,
+        };
       }
       studentData[t.studentId].hrSum += t.heartRate;
       studentData[t.studentId].stressSum += t.stressScore;
@@ -159,7 +179,7 @@ export class MonitoringService {
     const studentIds = Object.keys(studentData).map(Number);
     const students = await this.prisma.student.findMany({
       where: { id: { in: studentIds } },
-      select: { id: true, firstName: true, lastName: true, studentCode: true },
+      select: { id: true, user: true, studentCode: true },
     });
 
     const studentSummaries = students.map((s) => {
@@ -167,10 +187,12 @@ export class MonitoringService {
       return {
         studentId: s.id,
         studentCode: s.studentCode,
-        firstName: s.firstName,
-        lastName: s.lastName,
+        firstName: s.user.firstName,
+        lastName: s.user.lastName,
         averageHeartRate: Math.round(data.hrSum / data.count),
-        averageStressScore: parseFloat((data.stressSum / data.count).toFixed(2)),
+        averageStressScore: parseFloat(
+          (data.stressSum / data.count).toFixed(2),
+        ),
         recordsCount: data.count,
       };
     });
@@ -182,7 +204,9 @@ export class MonitoringService {
       averageHeartRate: Math.round(totalHr / telemetry.length),
       maxHeartRate: maxHr,
       minHeartRate: minHr === 999 ? 0 : minHr,
-      averageStressScore: parseFloat((totalStress / telemetry.length).toFixed(2)),
+      averageStressScore: parseFloat(
+        (totalStress / telemetry.length).toFixed(2),
+      ),
       maxStressScore: maxStress,
       minStressScore: minStress === 999 ? 0 : minStress,
       stressLevelsDistribution: stressDist,

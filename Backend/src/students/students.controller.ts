@@ -9,8 +9,14 @@ import {
   Query,
   UseGuards,
   ParseIntPipe,
+  Logger,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { StudentsService } from './students.service';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
@@ -25,6 +31,8 @@ import { Role } from '../common/enums/roles.enum';
 @UseGuards(JwtAuthGuard, RolesGuard)
 @ApiBearerAuth()
 export class StudentsController {
+  private readonly logger = new Logger(StudentsController.name);
+
   constructor(private readonly studentsService: StudentsService) {}
 
   @Post()
@@ -37,13 +45,12 @@ export class StudentsController {
 
   @Get()
   @ApiOperation({ summary: 'Get all students' })
-  @ApiQuery({ name: 'department', required: false, type: String })
-  @ApiResponse({ status: 200, description: 'Return paginated list of students' })
-  findAll(
-    @Query() paginationDto: PaginationDto,
-    @Query('department') department?: string,
-  ) {
-    return this.studentsService.findAll(paginationDto, department);
+  @ApiResponse({
+    status: 200,
+    description: 'Return paginated list of students',
+  })
+  findAll(@Query() paginationDto: PaginationDto) {
+    return this.studentsService.findAll(paginationDto);
   }
 
   @Get(':id')
@@ -73,5 +80,33 @@ export class StudentsController {
   @ApiResponse({ status: 404, description: 'Student not found' })
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.studentsService.remove(id);
+  }
+
+  @Patch(':id/pair')
+  @Roles(Role.ADMIN, Role.PROFESSOR, Role.STUDENT)
+  @ApiOperation({ summary: 'Pair device to student' })
+  @ApiResponse({ status: 200, description: 'Device successfully paired' })
+  pairDevice(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: { deviceId: string; seatNumber?: string; studentId?: string },
+  ) {
+    this.logger.debug(
+      `Received student pair request for studentId=${id}, deviceId=${body.deviceId}, seatNumber=${body.seatNumber ?? 'none'}, studentCode=${body.studentId ?? 'none'}`,
+    );
+    return this.studentsService.pairDevice(id, body.deviceId, body.seatNumber);
+  }
+
+  @Patch(':id/unpair')
+  @Roles(Role.ADMIN, Role.PROFESSOR, Role.STUDENT)
+  @ApiOperation({ summary: 'Unpair device from student' })
+  @ApiResponse({ status: 200, description: 'Device successfully unpaired' })
+  unpairDevice(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body?: { studentId?: string },
+  ) {
+    this.logger.debug(
+      `Received student unpair request for DB id=${id}, studentCode=${body?.studentId ?? 'none'}`,
+    );
+    return this.studentsService.unpairDevice(id);
   }
 }

@@ -13,17 +13,11 @@ import { MailService } from '../mail/mail.service';
 export class ProfessorsService {
   constructor(
     private prisma: PrismaService,
-   private mailService: MailService,
-  ) { }
+    private mailService: MailService,
+  ) {}
 
   async create(createProfessorDto: CreateProfessorDto) {
-    const {
-      firstName,
-      lastName,
-      email,
-      department,
-      password,
-    } = createProfessorDto;
+    const { firstName, lastName, email, password } = createProfessorDto;
 
     const existingUser = await this.prisma.user.findUnique({
       where: { email },
@@ -38,7 +32,8 @@ export class ProfessorsService {
     const professor = await this.prisma.$transaction(async (tx) => {
       const user = await tx.user.create({
         data: {
-          name: `${firstName} ${lastName}`,
+          firstName,
+          lastName,
           email,
           password: hashedPassword,
           role: 'PROFESSOR',
@@ -47,10 +42,6 @@ export class ProfessorsService {
 
       return tx.professor.create({
         data: {
-          firstName,
-          lastName,
-          email,
-          department,
           userId: user.id,
         },
         include: {
@@ -65,7 +56,6 @@ export class ProfessorsService {
       });
     });
 
-    
     try {
       await this.mailService.sendProfessorCredentials(
         email,
@@ -82,16 +72,7 @@ export class ProfessorsService {
   async findAll() {
     return this.prisma.professor.findMany({
       include: {
-        user: {
-          select: {
-            id: true,
-            role: true,
-            createdAt: true,
-          },
-        },
-      },
-      orderBy: {
-        lastName: 'asc',
+        user: true,
       },
     });
   }
@@ -100,43 +81,26 @@ export class ProfessorsService {
     const professor = await this.prisma.professor.findUnique({
       where: { id },
       include: {
-        user: {
-          select: {
-            id: true,
-            role: true,
-            createdAt: true,
-          },
-        },
+        user: true,
         exams: true,
       },
     });
 
     if (!professor) {
-      throw new NotFoundException(
-        `Professor with ID ${id} not found`,
-      );
+      throw new NotFoundException(`Professor with ID ${id} not found`);
     }
 
     return professor;
   }
 
-  async update(
-    id: number,
-    updateProfessorDto: UpdateProfessorDto,
-  ) {
+  async update(id: number, updateProfessorDto: UpdateProfessorDto) {
     const professor = await this.findOne(id);
 
-    const {
-      firstName,
-      lastName,
-      email,
-      department,
-      password,
-    } = updateProfessorDto;
+    const { firstName, lastName, email, password } = updateProfessorDto;
 
-    if (email && email !== professor.email) {
-      const existingUser = await this.prisma.user.findUnique({
-        where: { email },
+    if (email) {
+      const existingUser = await this.prisma.user.findFirst({
+        where: { email, NOT: { id: professor.userId } },
       });
 
       if (existingUser) {
@@ -147,21 +111,15 @@ export class ProfessorsService {
     return this.prisma.$transaction(async (tx) => {
       const userUpdateData: any = {};
 
-      if (firstName || lastName) {
-        userUpdateData.name = `${firstName ?? professor.firstName
-          } ${lastName ?? professor.lastName
-          }`;
-      }
+      if (firstName) userUpdateData.firstName = firstName;
+      if (lastName) userUpdateData.lastName = lastName;
 
       if (email) {
         userUpdateData.email = email;
       }
 
       if (password) {
-        userUpdateData.password = await bcrypt.hash(
-          password,
-          10,
-        );
+        userUpdateData.password = await bcrypt.hash(password, 10);
       }
 
       if (Object.keys(userUpdateData).length > 0) {
@@ -175,12 +133,7 @@ export class ProfessorsService {
 
       return tx.professor.update({
         where: { id },
-        data: {
-          firstName,
-          lastName,
-          email,
-          department,
-        },
+        data: {},
         include: {
           user: {
             select: {

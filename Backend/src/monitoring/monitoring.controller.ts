@@ -8,7 +8,12 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { MonitoringService } from './monitoring.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
@@ -51,8 +56,14 @@ export class MonitoringController {
   }
 
   @Get('session/:id/students')
-  @ApiOperation({ summary: 'Get list of students in the session and their latest biosignals' })
-  @ApiResponse({ status: 200, description: 'Return list of assigned students with real-time telemetry status' })
+  @ApiOperation({
+    summary: 'Get list of students in the session and their latest biosignals',
+  })
+  @ApiResponse({
+    status: 200,
+    description:
+      'Return list of assigned students with real-time telemetry status',
+  })
   @ApiResponse({ status: 404, description: 'Session not found' })
   getSessionStudents(@Param('id', ParseIntPipe) id: number) {
     return this.monitoringService.getSessionStudents(id);
@@ -60,15 +71,23 @@ export class MonitoringController {
 
   @Get('session/:id/history')
   @ApiOperation({ summary: 'Get full telemetry logs history for a session' })
-  @ApiResponse({ status: 200, description: 'Return full list of recorded telemetry points' })
+  @ApiResponse({
+    status: 200,
+    description: 'Return full list of recorded telemetry points',
+  })
   @ApiResponse({ status: 404, description: 'Session not found' })
   getSessionHistory(@Param('id', ParseIntPipe) id: number) {
     return this.monitoringService.getSessionHistory(id);
   }
 
   @Get('session/:id/statistics')
-  @ApiOperation({ summary: 'Get aggregated statistics of stress levels and heart rate' })
-  @ApiResponse({ status: 200, description: 'Return statistical summary of telemetry data' })
+  @ApiOperation({
+    summary: 'Get aggregated statistics of stress levels and heart rate',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Return statistical summary of telemetry data',
+  })
   @ApiResponse({ status: 404, description: 'Session not found' })
   getSessionStatistics(@Param('id', ParseIntPipe) id: number) {
     return this.monitoringService.getSessionStatistics(id);

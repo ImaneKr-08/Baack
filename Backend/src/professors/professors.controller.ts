@@ -9,7 +9,12 @@ import {
   UseGuards,
   ParseIntPipe,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { ProfessorsService } from './professors.service';
 import { CreateProfessorDto } from './dto/create-professor.dto';
 import { UpdateProfessorDto } from './dto/update-professor.dto';
@@ -27,7 +32,9 @@ export class ProfessorsController {
 
   @Post()
   @Roles(Role.ADMIN)
-  @ApiOperation({ summary: 'Create professor and linked login account (Admin only)' })
+  @ApiOperation({
+    summary: 'Create professor and linked login account (Admin only)',
+  })
   @ApiResponse({ status: 201, description: 'Professor successfully created' })
   @ApiResponse({ status: 400, description: 'Bad request' })
   create(@Body() createProfessorDto: CreateProfessorDto) {
@@ -65,7 +72,9 @@ export class ProfessorsController {
 
   @Delete(':id')
   @Roles(Role.ADMIN)
-  @ApiOperation({ summary: 'Delete professor and linked user account (Admin only)' })
+  @ApiOperation({
+    summary: 'Delete professor and linked user account (Admin only)',
+  })
   @ApiResponse({ status: 200, description: 'Professor successfully deleted' })
   @ApiResponse({ status: 404, description: 'Professor not found' })
   remove(@Param('id', ParseIntPipe) id: number) {

@@ -20,14 +20,16 @@ export class UsersService {
 
     return this.prisma.user.create({
       data: {
-        name: createUserDto.name,
+        firstName: createUserDto.firstName,
+        lastName: createUserDto.lastName,
         email: createUserDto.email,
         password: hashedPassword,
         role: createUserDto.role,
       },
       select: {
         id: true,
-        name: true,
+        firstName: true,
+        lastName: true,
         email: true,
         role: true,
         createdAt: true,
@@ -38,6 +40,10 @@ export class UsersService {
   async findByEmail(email: string) {
     return this.prisma.user.findUnique({
       where: { email },
+      include: {
+        student: true,
+        professor: true,
+      },
     });
   }
 
@@ -46,10 +52,27 @@ export class UsersService {
       where: { id },
       select: {
         id: true,
-        name: true,
+        firstName: true,
+        lastName: true,
         email: true,
         role: true,
         createdAt: true,
+        professor: true,
+        student: true,
+      },
+    });
+  }
+
+  async findAll() {
+    return this.prisma.user.findMany({
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        role: true,
+        createdAt: true,
+        student: true,
         professor: true,
       },
     });

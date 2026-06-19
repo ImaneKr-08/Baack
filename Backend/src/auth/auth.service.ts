@@ -9,7 +9,7 @@ export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
-  ) { }
+  ) {}
 
   async login(loginDto: LoginDto) {
     const user = await this.usersService.findByEmail(loginDto.email);
@@ -18,21 +18,13 @@ export class AuthService {
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    const isMatch = await bcrypt.compare(
-      loginDto.password,
-      user.password,
-    );
+    const isMatch = await bcrypt.compare(loginDto.password, user.password);
 
     if (!isMatch) {
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    return this.generateTokens(
-      user.id,
-      user.name,
-      user.email,
-      user.role,
-    );
+    return this.generateTokens(user);
   }
 
   async refreshTokens(userId: number) {
@@ -42,20 +34,15 @@ export class AuthService {
       throw new UnauthorizedException('User not found');
     }
 
-    return this.generateTokens(
-      user.id,
-      user.name,
-      user.email,
-      user.role,
-    );
+    return this.generateTokens(user as any);
   }
 
-  private generateTokens(
-    userId: number,
-    name: string,
-    email: string,
-    role: string,
-  ) {
+  private generateTokens(user: any) {
+    const userId = user.id;
+    const name = `${user.firstName} ${user.lastName}`;
+    const email = user.email;
+    const role = user.role;
+
     const payload = {
       sub: userId,
       email,
@@ -64,8 +51,7 @@ export class AuthService {
 
     const accessToken = this.jwtService.sign(payload, {
       secret:
-        process.env.JWT_SECRET ||
-        'proctor_insight_jwt_secret_key_2026_xyz',
+        process.env.JWT_SECRET || 'proctor_insight_jwt_secret_key_2026_xyz',
       expiresIn: '60m',
     });
 
@@ -80,7 +66,13 @@ export class AuthService {
       accessToken,
       refreshToken,
       user: {
-        id: userId,
+        id: user.student
+          ? user.student.id
+          : user.professor
+            ? user.professor.id
+            : userId,
+        studentId: user.student ? user.student.studentCode : undefined,
+        studentCode: user.student ? user.student.studentCode : undefined,
         name,
         email,
         role,

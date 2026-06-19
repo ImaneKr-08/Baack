@@ -11,12 +11,20 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { ExamsService } from './exams.service';
 import { CreateExamDto } from './dto/create-exam.dto';
 import { UpdateExamDto } from './dto/update-exam.dto';
 import { AssignProfessorDto } from './dto/assign-professor.dto';
-import { AssignStudentsDto } from './dto/assign-students.dto';
+import {
+  AssignStudentsDto,
+  StudentAssignmentDto,
+} from './dto/assign-students.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
@@ -46,7 +54,11 @@ export class ExamsController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Get exam details by ID' })
-  @ApiResponse({ status: 200, description: 'Return exam details with classroom, professor, and student seating' })
+  @ApiResponse({
+    status: 200,
+    description:
+      'Return exam details with classroom, professor, and student seating',
+  })
   @ApiResponse({ status: 404, description: 'Exam not found' })
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.examsService.findOne(id);
@@ -76,7 +88,9 @@ export class ExamsController {
   @Post(':id/assign-professor')
   @Roles(Role.ADMIN)
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Assign a professor to supervise an exam (Admin only)' })
+  @ApiOperation({
+    summary: 'Assign a professor to supervise an exam (Admin only)',
+  })
   @ApiResponse({ status: 200, description: 'Professor successfully assigned' })
   assignProfessor(
     @Param('id', ParseIntPipe) id: number,
@@ -88,7 +102,9 @@ export class ExamsController {
   @Post(':id/assign-students')
   @Roles(Role.ADMIN, Role.PROFESSOR)
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Assign students to specific desks in the exam classroom' })
+  @ApiOperation({
+    summary: 'Assign students to specific desks in the exam classroom',
+  })
   @ApiResponse({ status: 200, description: 'Students successfully assigned' })
   assignStudents(
     @Param('id', ParseIntPipe) id: number,
@@ -97,11 +113,31 @@ export class ExamsController {
     return this.examsService.assignStudents(id, dto.assignments);
   }
 
+  @Post(':id/check-in')
+  @Roles(Role.ADMIN, Role.PROFESSOR, Role.STUDENT)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Check a student into one table for this exam',
+  })
+  @ApiResponse({ status: 200, description: 'Student table check-in saved' })
+  checkInStudent(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: StudentAssignmentDto,
+  ) {
+    return this.examsService.checkInStudent(id, dto);
+  }
+
   @Post(':id/start')
   @Roles(Role.ADMIN, Role.PROFESSOR)
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Start an exam: transitions status to ONGOING and opens monitoring' })
-  @ApiResponse({ status: 200, description: 'Exam session successfully started' })
+  @ApiOperation({
+    summary:
+      'Start an exam: transitions status to ONGOING and opens monitoring',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Exam session successfully started',
+  })
   start(@Param('id', ParseIntPipe) id: number) {
     return this.examsService.start(id);
   }
@@ -109,7 +145,10 @@ export class ExamsController {
   @Post(':id/end')
   @Roles(Role.ADMIN, Role.PROFESSOR)
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'End an exam: transitions status to COMPLETED and closes monitoring' })
+  @ApiOperation({
+    summary:
+      'End an exam: transitions status to COMPLETED and closes monitoring',
+  })
   @ApiResponse({ status: 200, description: 'Exam session successfully ended' })
   end(@Param('id', ParseIntPipe) id: number) {
     return this.examsService.end(id);

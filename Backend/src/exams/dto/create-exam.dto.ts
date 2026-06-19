@@ -2,12 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsDateString, IsInt, IsNotEmpty, IsString } from 'class-validator';
 
 export class CreateExamDto {
-  @ApiProperty()
-  @IsNotEmpty()
-  @IsString()
-  title!: string;
-
-  @ApiProperty()
+  @ApiProperty({ description: 'Module of the exam' })
   @IsNotEmpty()
   @IsString()
   module!: string;

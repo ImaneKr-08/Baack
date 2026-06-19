@@ -9,7 +9,12 @@ import {
   UseGuards,
   ParseIntPipe,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { ClassroomsService } from './classrooms.service';
 import { CreateClassroomDto } from './dto/create-classroom.dto';
 import { UpdateClassroomDto } from './dto/update-classroom.dto';
@@ -43,7 +48,10 @@ export class ClassroomsController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Get classroom by ID' })
-  @ApiResponse({ status: 200, description: 'Return classroom details with tables' })
+  @ApiResponse({
+    status: 200,
+    description: 'Return classroom details with tables',
+  })
   @ApiResponse({ status: 404, description: 'Classroom not found' })
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.classroomsService.findOne(id);
@@ -58,22 +66,21 @@ export class ClassroomsController {
     @Param('id', ParseIntPipe) id: number,
     @Body() updateClassroomDto: UpdateClassroomDto,
   ) {
-    
     return this.classroomsService.update(id, updateClassroomDto);
   }
   @Patch(':id/layout')
   @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Update classroom layout (Admin only)' })
-  @ApiResponse({ status: 200, description: 'Classroom layout successfully updated' })
+  @ApiResponse({
+    status: 200,
+    description: 'Classroom layout successfully updated',
+  })
   @ApiResponse({ status: 404, description: 'Classroom not found' })
   updateLayout(
     @Param('id', ParseIntPipe) id: number,
     @Body() body: UpdateLayoutDto,
   ) {
-    return this.classroomsService.updateLayout(
-      id,
-      body.tables,
-    );
+    return this.classroomsService.updateLayout(id, body.tables);
   }
   @Delete(':id')
   @Roles(Role.ADMIN)
