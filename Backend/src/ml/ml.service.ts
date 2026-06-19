@@ -126,7 +126,6 @@ const gsr = raw.gsr;
   stressScore: confidence,
   stressLevel: displayLevel,
 
-  timestamp: dto.timestamp,
 });
 
     this.logger.debug(
