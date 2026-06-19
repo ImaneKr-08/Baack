@@ -46,6 +46,9 @@ export class RealtimeGateway
 }) {
     this.logger.debug(`Broadcasting telemetryUpdated: ${JSON.stringify(data)}`);
     this.server.emit('telemetryUpdated', data);
+    this.logger.debug(
+  `TELEMETRY PAYLOAD = ${JSON.stringify(data)}`
+);
   }
 
   sendStudentConnected(data: { studentId: number; braceletId: string }) {
