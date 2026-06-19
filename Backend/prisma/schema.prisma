@@ -18,6 +18,7 @@ model User {
   updatedAt DateTime   @updatedAt
   professor Professor?
   student   Student?
+  therapist Therapist?
 }
 
 model Student {
@@ -48,6 +49,13 @@ model Professor {
   userId Int    @unique
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   exams  Exam[]
+}
+
+model Therapist {
+  id       Int                @id @default(autoincrement())
+  userId   Int                @unique
+  user     User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessions TherapistSession[]
 }
 
 model Classroom {
@@ -151,15 +159,17 @@ model JournalEntry {
 }
 
 model TherapistSession {
-  id            String   @id @default(uuid())
+  id            String            @id @default(uuid())
   studentId     Int
   therapistName String
   type          String
   dateTime      DateTime
-  status        String   @default("Scheduled")
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  student       Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  status        AppointmentStatus @default(PENDING)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  student       Student           @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  therapist     Therapist?        @relation(fields: [therapistId], references: [id])
+  therapistId   Int?
 
   @@index([studentId], map: "TherapistSession_studentId_fkey")
 }
@@ -199,12 +209,19 @@ enum Role {
   ADMIN
   PROFESSOR
   STUDENT
+  THERAPIST
 }
 
 enum ExamStatus {
   PENDING
   ONGOING
   COMPLETED
+}
+
+enum AppointmentStatus {
+  PENDING
+  SCHEDULED
+  DECLINED
 }
 
 enum StressLevel {
