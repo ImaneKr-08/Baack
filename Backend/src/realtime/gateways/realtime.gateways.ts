@@ -32,12 +32,18 @@ export class RealtimeGateway
   }
 
   sendTelemetryUpdate(data: {
-    braceletId: string;
-    studentId: number;
-    heartRate: number;
-    stressScore: number;
-    stressLevel: string;
-  }) {
+  braceletId: string;
+  studentId: number;
+
+  heartRate: number;
+  hrv: number;
+  gsr: number;
+
+  stressScore: number;
+  stressLevel: string;
+
+  timestamp?: number;
+}) {
     this.logger.debug(`Broadcasting telemetryUpdated: ${JSON.stringify(data)}`);
     this.server.emit('telemetryUpdated', data);
   }

@@ -115,13 +115,19 @@ const gsr = raw.gsr;
       displayLevel = 'Mild Stress';
     }
 
-    this.realtimeGateway.sendTelemetryUpdate({
-      braceletId: esp32_id,
-      studentId: student.id,
-      heartRate,
-      stressScore: confidence,
-      stressLevel: displayLevel,
-    });
+   this.realtimeGateway.sendTelemetryUpdate({
+  braceletId: esp32_id,
+  studentId: student.id,
+
+  heartRate,
+  hrv,
+  gsr,
+
+  stressScore: confidence,
+  stressLevel: displayLevel,
+
+  timestamp: dto.timestamp,
+});
 
     this.logger.debug(
       `Telemetry broadcast requested for studentId=${student.id}, braceletId=${esp32_id}, displayLevel=${displayLevel}`,
