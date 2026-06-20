@@ -70,9 +70,20 @@ export class AuthService {
           ? user.student.id
           : user.professor
             ? user.professor.id
-            : userId,
-        studentId: user.student ? user.student.studentCode : undefined,
-        studentCode: user.student ? user.student.studentCode : undefined,
+            : user.therapist
+              ? user.therapist.id
+              : userId,
+
+        userId: userId,
+
+        studentId: user.student
+          ? user.student.studentCode
+          : undefined,
+
+        studentCode: user.student
+          ? user.student.studentCode
+          : undefined,
+
         name,
         email,
         role,

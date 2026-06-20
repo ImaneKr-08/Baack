@@ -159,19 +159,28 @@ model JournalEntry {
 }
 
 model TherapistSession {
-  id            String            @id @default(uuid())
-  studentId     Int
-  therapistName String
-  type          String
-  dateTime      DateTime
-  status        AppointmentStatus @default(PENDING)
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
-  student       Student           @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  therapist     Therapist?        @relation(fields: [therapistId], references: [id])
-  therapistId   Int?
+  id Int @id @default(autoincrement())
 
-  @@index([studentId], map: "TherapistSession_studentId_fkey")
+  studentId   Int
+  therapistId Int
+
+  type             String
+  dateTime         DateTime?
+  notes            String?           @db.Text
+  status           AppointmentStatus @default(PENDING)
+  sessionSummary   String?           @db.Text
+  observations     String?           @db.Text
+  recommendations  String?           @db.Text
+  stressAssessment StressLevel?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  student   Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  therapist Therapist @relation(fields: [therapistId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+  @@index([therapistId])
 }
 
 model UpcomingExam {

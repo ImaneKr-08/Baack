@@ -17,6 +17,8 @@ import { UsersModule } from './users/users.module';
 import { MailModule } from './mail/mail.module';
 import configuration from './config/configuration';
 import { validate } from './config/env.validation';
+import { AppointmentsModule } from './appointments/appointment.module';
+import { TherapistsModule } from './therapists/therapist.module';
 
 @Module({
   imports: [
@@ -38,6 +40,8 @@ import { validate } from './config/env.validation';
     TablesModule,
     UsersModule,
     MailModule,
+    AppointmentsModule,
+    TherapistsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
