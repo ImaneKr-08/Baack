@@ -141,6 +141,23 @@ export class AppointmentsService {
             },
         });
     }
+    async getSessionDetails(id: number) {
+        return this.prisma.therapistSession.findUnique({
+            where: { id },
+            include: {
+                student: {
+                    include: {
+                        user: true,
+                    },
+                },
+                therapist: {
+                    include: {
+                        user: true,
+                    },
+                },
+            },
+        });
+    }
     async createSession(data: {
         studentId: number;
         therapistId: number;

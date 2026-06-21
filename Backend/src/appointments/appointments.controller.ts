@@ -54,7 +54,14 @@ export class AppointmentsController {
     createSession(@Body() body: any) {
         return this.appointmentsService.createSession(body);
     }
-
+    @Get('session/:id')
+    getSessionDetails(
+        @Param('id') id: string,
+    ) {
+        return this.appointmentsService.getSessionDetails(
+            Number(id),
+        );
+    }
     @Patch('session/:id')
     updateSession(
         @Param('id') id: string,
