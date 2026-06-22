@@ -67,7 +67,11 @@ export class ExamsService {
         professor: true,
         examStudents: {
           include: {
-            student: true,
+            student: {
+              include: {
+                user: true,
+              },
+            },
             table: true,
           },
         },
