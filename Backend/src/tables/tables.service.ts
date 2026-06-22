@@ -40,15 +40,29 @@ export class TablesService {
       );
     }
 
-    const table = await this.prisma.table.create({
-      data: {
-        id: createTableDto.id,
+    let table;
+    try {
+      const createData: any = {
         classroomId: createTableDto.classroomId,
         positionX: createTableDto.positionX,
         positionY: createTableDto.positionY,
-        qrCode: createTableDto.qrCode,
-      },
-    });
+      };
+      if (createTableDto.id !== undefined) {
+        createData.id = createTableDto.id;
+      }
+      if (createTableDto.qrCode !== undefined) {
+        createData.qrCode = createTableDto.qrCode;
+      }
+
+      table = await this.prisma.table.create({
+        data: createData,
+      });
+    } catch (error: any) {
+      if (error.code === 'P2002') {
+        throw new ConflictException(`Table with ID ${createTableDto.id} already exists`);
+      }
+      throw error;
+    }
 
     await this.qrCodesService.generateQrCodeForTable(table.id);
 
