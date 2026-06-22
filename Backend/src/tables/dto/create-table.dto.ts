@@ -18,6 +18,11 @@ export class CreateTableDto {
 
   @ApiPropertyOptional()
   @IsOptional()
+  @IsInt()
+  id?: number;
+
+  @ApiPropertyOptional()
+  @IsOptional()
   @IsString()
   qrCode?: string;
 }

@@ -41,7 +41,13 @@ export class TablesService {
     }
 
     const table = await this.prisma.table.create({
-      data: createTableDto,
+      data: {
+        id: createTableDto.id,
+        classroomId: createTableDto.classroomId,
+        positionX: createTableDto.positionX,
+        positionY: createTableDto.positionY,
+        qrCode: createTableDto.qrCode,
+      },
     });
 
     await this.qrCodesService.generateQrCodeForTable(table.id);
